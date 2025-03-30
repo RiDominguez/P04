@@ -1,35 +1,33 @@
-import './App.css'
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
+import React, { useEffect, useState } from 'react';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [cards, setCards] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Llamar al backend para obtener las cartas
+    const fetchCards = async () => {
+      const response = await fetch("http://localhost:8000/api/pokemon/cards");
+      const data = await response.json();
+      setCards(data.data); // Asegúrate de que el backend devuelva datos en `data.data`
+    };
+
+    fetchCards();
+  }, []);
 
   return (
-    <>
-      <img src="/vite-deno.svg" alt="Vite with Deno" />
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>Cartas Pokémon</h1>
+      <ul>
+        {cards.map((card: any) => (
+          <li key={card.id}>
+            <h2>{card.name}</h2>
+            <p>{card.set.name}</p>
+            <img src={card.images.small} alt={card.name} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default App
+export default App;
