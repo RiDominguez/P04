@@ -1,33 +1,60 @@
 import React, { useEffect, useState } from 'react';
+import Card from './components/Card';
+import './App.css';
 
-function App() {
+const App: React.FC = () => {
   const [cards, setCards] = useState<any[]>([]);
+  const [search, setSearch] = useState(''); // Estado para la búsqueda
 
   useEffect(() => {
-    // Llamar al backend para obtener las cartas
-    const fetchCards = async () => {
-      const response = await fetch("http://localhost:8000/api/pokemon/cards");
-      const data = await response.json();
-      setCards(data.data); // Asegúrate de que el backend devuelva datos en `data.data`
-    };
-
-    fetchCards();
+    fetch('/api/pokemon/cards')
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('Datos recibidos:', data);
+        setCards(data.data || []);
+      })
+      .catch((error) => console.error('Error al obtener las cartas:', error));
   }, []);
 
+  // Filtrar las cartas según el texto ingresado en la barra de búsqueda
+  const filteredCards = cards.filter((card) =>
+    card.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div>
-      <h1>Cartas Pokémon</h1>
-      <ul>
-        {cards.map((card: any) => (
-          <li key={card.id}>
-            <h2>{card.name}</h2>
-            <p>{card.set.name}</p>
-            <img src={card.images.small} alt={card.name} />
-          </li>
-        ))}
-      </ul>
+    <div className="App">
+      <h1>Pokémon Cards</h1>
+      {/* Barra de búsqueda */}
+      <input
+        type="text"
+        placeholder="Buscar cartas"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          padding: '0.5rem',
+          marginBottom: '1rem',
+          width: '100%',
+          maxWidth: '400px',
+          borderRadius: '4px',
+          border: '1px solid #ccc',
+        }}
+      />
+      {/* Contenedor de cartas */}
+      <div className="card-container">
+        {filteredCards.length > 0 ? (
+          filteredCards.map((card) => (
+            <Card
+              key={card.id}
+              name={card.name}
+              imageUrl={card.images.small}
+            />
+          ))
+        ) : (
+          <p>No hay cartas que coincidan con la búsqueda.</p>
+        )}
+      </div>
     </div>
   );
-}
+};
 
 export default App;
