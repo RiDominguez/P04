@@ -4,19 +4,28 @@ import './App.css';
 
 const App: React.FC = () => {
   const [cards, setCards] = useState<any[]>([]);
-  const [search, setSearch] = useState(''); // Estado para la búsqueda
+  const [search, setSearch] = useState(''); 
+  const [currentPage, setCurrentPage] = useState(1); 
+  const [totalPages, setTotalPages] = useState(1); 
+  const [loading, setLoading] = useState(true); 
+
+  const limit = 10; 
 
   useEffect(() => {
-    fetch('/api/pokemon/cards')
+    fetch(`/api/pokemon/cards?page=${currentPage}&limit=${limit}`)
       .then((response) => response.json())
       .then((data) => {
         console.log('Datos recibidos:', data);
-        setCards(data.data || []);
+        setCards(data.cards || []);
+        setTotalPages(data.totalPages); 
+        setLoading(false);
       })
-      .catch((error) => console.error('Error al obtener las cartas:', error));
-  }, []);
+      .catch((error) => {
+        console.error('Error al obtener las cartas:', error);
+        setLoading(false);
+      });
+  }, [currentPage]);
 
-  // Filtrar las cartas según el texto ingresado en la barra de búsqueda
   const filteredCards = cards.filter((card) =>
     card.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -24,7 +33,6 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <h1>Pokémon Cards</h1>
-      {/* Barra de búsqueda */}
       <input
         type="text"
         placeholder="Buscar cartas"
@@ -39,19 +47,31 @@ const App: React.FC = () => {
           border: '1px solid #ccc',
         }}
       />
-      {/* Contenedor de cartas */}
       <div className="card-container">
-        {filteredCards.length > 0 ? (
+        {loading ? (
+          <p>Loading...</p>
+        ) : filteredCards.length > 0 ? (
           filteredCards.map((card) => (
-            <Card
-              key={card.id}
-              name={card.name}
-              imageUrl={card.images.small}
-            />
+            <Card key={card.id} name={card.name} imageUrl={card.images.small} />
           ))
         ) : (
           <p>No hay cartas que coincidan con la búsqueda.</p>
         )}
+      </div>
+      <div>
+        <button
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <span>Page {currentPage} of {totalPages}</span>
+        <button
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

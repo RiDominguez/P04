@@ -1,9 +1,13 @@
 import { Context } from "https://deno.land/x/oak/mod.ts";
 
-// Función para obtener cartas de la API de Pokémon
 export const getCardsFromAPI = async ({ request, response }: Context) => {
   try {
-    const res = await fetch("https://api.pokemontcg.io/v2/cards", {
+
+    const page = parseInt(request.url.searchParams.get("page") || "1");
+    const limit = parseInt(request.url.searchParams.get("limit") || "10");
+    const offset = (page - 1) * limit;
+
+    const res = await fetch(`https://api.pokemontcg.io/v2/cards?pageSize=${limit}&page=${page}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -17,8 +21,14 @@ export const getCardsFromAPI = async ({ request, response }: Context) => {
     }
 
     const data = await res.json();
+
     response.status = 200;
-    response.body = data;  // Devolver los datos obtenidos de la API
+    response.body = {
+      cards: data.data,   
+      totalCards: data.totalCount, 
+      currentPage: page,   
+      totalPages: Math.ceil(data.totalCount / limit), 
+    };
   } catch (error) {
     console.error("Error en la conexión con la API de Pokémon:", error);
     response.status = 500;
