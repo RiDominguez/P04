@@ -38,6 +38,79 @@ Pokedex
       ├─ server.ts
       └─ services
 ```
+
+## Database Schema
+
+The application uses a relational database (PostgreSQL) to store information about Pokémon cards, users, their collections, and related statistics.
+
+### Tables:
+
+1. **pokemon_cards**
+   - Stores information about the Pokémon cards.
+   - **Fields**:
+     - `id`: Unique identifier for the card.
+     - `name`: Name of the card.
+     - `rarity`: Rarity of the card.
+     - `type`: Type of Pokémon (e.g., Fire, Water).
+     - `expansion`: Expansion set the card belongs to.
+     - `official_id`: The official ID of the card.
+
+2. **card_images**
+   - Stores image data for each Pokémon card.
+   - **Fields**:
+     - `id`: Unique identifier for the image.
+     - `card_id`: Foreign key referencing the `pokemon_cards` table.
+     - `image_url`: URL for the card's image.
+
+3. **market_prices**
+   - Stores the market prices for each Pokémon card.
+   - **Fields**:
+     - `id`: Unique identifier for the price entry.
+     - `card_id`: Foreign key referencing the `pokemon_cards` table.
+     - `price`: Current market price for the card.
+     - `last_updated`: Timestamp of when the price was last updated.
+
+4. **users**
+   - Stores user information for the application.
+   - **Fields**:
+     - `id`: Unique identifier for the user.
+     - `username`: User's username.
+     - `email`: User's email address.
+     - `password_hash`: Hash of the user's password.
+
+5. **card_statistics**
+   - Stores statistics related to each user's collection.
+   - **Fields**:
+     - `id`: Unique identifier for the statistics entry.
+     - `user_id`: Foreign key referencing the `users` table.
+     - `total_cards`: Total number of cards the user owns.
+     - `unique_cards`: Number of unique cards.
+     - `predominant_type`: Most common type of Pokémon in the user's collection.
+     - `completeness_percentage`: Percentage of collection completed.
+
+6. **user_cards**
+   - Stores which cards belong to which user.
+   - **Fields**:
+     - `id`: Unique identifier for the user's card.
+     - `user_id`: Foreign key referencing the `users` table.
+     - `card_id`: Foreign key referencing the `pokemon_cards` table.
+     - `is_for_trade`: Boolean indicating if the card is available for trade.
+     - `condition`: Condition of the card (e.g., Mint, Near Mint).
+     - `collection_name`: Name of the collection if the card belongs to one.
+
+7. **collections**
+   - Stores information about each user's card collection.
+   - **Fields**:
+     - `id`: Unique identifier for the collection.
+     - `user_id`: Foreign key referencing the `users` table.
+     - `name`: Name of the collection.
+
+8. **collection_cards**
+   - Stores the relationship between collections and cards.
+   - **Fields**:
+     - `id`: Unique identifier for the collection-card relationship.
+     - `collection_id`: Foreign key referencing the `collections` table.
+     - `card_id`: Foreign key referencing the `pokemon_cards` table.
 ## Features
 
 1. **Card Scanning and Recognition**
