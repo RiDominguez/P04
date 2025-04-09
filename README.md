@@ -10,8 +10,34 @@ This project is a web application that allows users to scan and register their P
 - **Other**: Vite for frontend compilation
 
 ## Project Structure
-
-
+```
+Pokedex
+├─ client
+│  ├─ index.html
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ public
+│  ├─ src
+│  │  ├─ App.css
+│  │  ├─ App.tsx
+│  │  ├─ assets
+│  │  ├─ components
+│  │  ├─ main.tsx
+│  └─ vite.config.ts
+├─ package-lock.json
+├─ README.md
+└─ server
+   ├─ deno.json
+   ├─ deno.lock
+   └─ src
+      ├─ controllers
+      ├─ db
+      ├─ deps.ts
+      ├─ models
+      ├─ routes.ts
+      ├─ server.ts
+      └─ services
+```
 ## Features
 
 1. **Card Scanning and Recognition**
