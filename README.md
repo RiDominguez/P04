@@ -140,13 +140,13 @@ The application uses a relational database (PostgreSQL) to store information abo
    ```bash
    npm install
    npm run dev
+   ```
 This will install the dependencies and start the Vite development server on http://localhost:3000.
 
 Backend Installation
 Navigate to the server/ directory and run the Deno server:
 
-bash
-Copiar
-Editar
+```bash
 deno run --allow-net --allow-read server.ts
+```
 This will start the backend server, which will be available on the configured port.
