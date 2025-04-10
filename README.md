@@ -22,7 +22,16 @@ Pokedex
 │  │  ├─ App.tsx
 │  │  ├─ assets
 │  │  ├─ components
+│  │  │  ├─ card.tsx
+│  │  │  ├─ pages
+│  │  │  │  └─ Home.tsx
+│  │  │  ├─ Pagination.tsx
+│  │  │  └─ SearchBar.tsx
+│  │  ├─ hooks
+│  │  │  └─ UseCards.ts
+│  │  ├─ index.css
 │  │  ├─ main.tsx
+│  │  └─ vite-env.d.ts
 │  └─ vite.config.ts
 ├─ package-lock.json
 ├─ README.md
@@ -37,6 +46,7 @@ Pokedex
       ├─ routes.ts
       ├─ server.ts
       └─ services
+         └─ pokemon.ts
 ```
 
 ## Database Schema
