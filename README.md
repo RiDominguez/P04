@@ -157,6 +157,6 @@ Backend Installation
 Navigate to the server/ directory and run the Deno server:
 
 ```bash
-deno run --allow-net --allow-read server.ts
+deno run --allow-net --allow-read --allow-env src/server.ts
 ```
 This will start the backend server, which will be available on the configured port.
