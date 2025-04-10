@@ -57,6 +57,13 @@ input[type="text"] {
   justify-content: center;
 }
 
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
 .card {
   border: 1px solid #ddd;
   padding: 10px;
