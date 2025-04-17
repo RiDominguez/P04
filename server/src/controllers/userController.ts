@@ -16,7 +16,6 @@ export const getUsers = async (ctx: RouterContext<"/users">) => {
       id: number; 
       username: string; 
       email: string;
-      created_at?: Date; // Opcional si existe en tu tabla
     }>(
       "SELECT id, username, email FROM users ORDER BY id DESC LIMIT 100"
     );
@@ -49,7 +48,7 @@ export const getUserById = async (ctx: RouterContext<"/users/:id">) => {
       ctx.throw(404, "Usuario no encontrado");
     }
     
-    ctx.response.body = result.rows[0]; // TypeScript ya sabe la estructura
+    ctx.response.body = result.rows[0]; 
   } catch (error) {
     console.error(`Error en getUserById (ID: ${id}):`, error);
     ctx.throw(500, "Error al obtener usuario");
@@ -61,7 +60,7 @@ export const createUser = async (ctx: RouterContext<"/users">) => {
     const body = await ctx.request.body.json();
     const validatedData = userSchema.parse(body);
 
-    // Verificar si el usuario ya existe
+  
     const existing = await client.queryObject(
       "SELECT 1 FROM users WHERE username = $1 OR email = $2 LIMIT 1",
       [validatedData.username, validatedData.email]
@@ -78,7 +77,7 @@ export const createUser = async (ctx: RouterContext<"/users">) => {
 
     ctx.response.status = 201;
     ctx.response.body = {
-      id: Number(result.rows[0].id), // Conversión segura para IDs < 2^53
+      id: Number(result.rows[0].id), 
       message: "Usuario creado"
     };
 
@@ -107,7 +106,7 @@ export const deleteUser = async (ctx: RouterContext<"/users/:id">) => {
       ctx.throw(404, "Usuario no encontrado");
     }
     
-    ctx.response.status = 204; // No Content
+    ctx.response.status = 204; 
   } catch (error) {
     console.error(`Error en deleteUser (ID: ${id}):`, error);
     ctx.throw(500, "Error al eliminar usuario");

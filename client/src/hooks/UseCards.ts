@@ -1,34 +1,58 @@
 import { useState, useEffect } from 'react';
 
-export const useCards = (currentPage: number, limit: number, search: string) => {
-  const [cards, setCards] = useState<any[]>([]);
-  const [allCards, setAllCards] = useState<any[]>([]);  // Para almacenar todas las cartas
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
+interface PokemonCard {
+  id: string;
+  name: string;
+  images: {
+    small: string;
+    large: string;
+  };
+  // Agrega más propiedades según necesites
+}
+
+const useCards = (page: number, pageSize: number, search: string = '') => {
+  const [cards, setCards] = useState<PokemonCard[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
   useEffect(() => {
-    setLoading(true);
-    fetch(`/api/pokemon/cards?limit=1000`)  // Trae todas las cartas (sin paginación)
-      .then((response) => response.json())
-      .then((data) => {
-        setAllCards(data.cards || []);
-        setCards(data.cards || []); // Al principio muestra todas las cartas
-        setTotalPages(Math.ceil((data.cards.length) / limit)); // Calcula el número total de páginas
+    const fetchCards = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Reemplaza con la URL de tu endpoint backend
+        const apiUrl = `http://localhost:8000/cards?page=${page}&pageSize=${pageSize}${
+          search ? `&search=${encodeURIComponent(search)}` : ''
+        }`;
+        
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          setCards(data.data);
+          setTotalPages(Math.ceil(data.totalCount / pageSize));
+        } else {
+          throw new Error(data.message || 'Error al obtener las cartas');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+        console.error('Error fetching Pokemon cards:', err);
+      } finally {
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error al obtener las cartas:', error);
-        setLoading(false);
-      });
-  }, []);
+      }
+    };
 
-  // Filtrado de las cartas según la búsqueda
-  const filteredCards = allCards.filter((card) =>
-    card.name.toLowerCase().includes(search.toLowerCase())
-  );
+    fetchCards();
+  }, [page, pageSize, search]);
 
-  // Paginación de las cartas filtradas
-  const paginatedCards = filteredCards.slice((currentPage - 1) * limit, currentPage * limit);
-
-  return { paginatedCards, loading, totalPages };
+  return { cards, loading, error, totalPages };
 };
+
+export default useCards;

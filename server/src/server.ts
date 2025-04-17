@@ -1,9 +1,15 @@
-import { Application } from "https://deno.land/x/oak/mod.ts";
+import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import userRouter from "./routes/userRoutes.ts";
+import cardRoutes from "./routes/cardRoutes.ts";
 import { connectDB } from "./db/db.ts";
+import { oakCors } from "https://deno.land/x/cors/mod.ts";
+
+
 
 const PORT = 8000;
 const app = new Application();
+
+app.use(oakCors());
 
 app.use(async (ctx, next) => {
   ctx.response.headers.set("Content-Type", "application/json");
@@ -13,9 +19,11 @@ app.use(async (ctx, next) => {
 // Conexión a DB
 await connectDB();
 
+
 // Rutas
 app.use(userRouter.routes());
 app.use(userRouter.allowedMethods());
+app.use(cardRoutes.routes());
 
 // Ruta de prueba
 app.use((ctx) => {
