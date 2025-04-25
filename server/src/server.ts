@@ -1,17 +1,36 @@
-import { Application } from "./deps.ts";  
-import { oakCors } from "./deps.ts";    
-import { router } from "./routes.ts";    
+import { Application, Router } from "https://deno.land/x/oak/mod.ts";
+import userRouter from "./routes/userRoutes.ts";
+import cardRoutes from "./routes/cardRoutes.ts";
+import { connectDB } from "./db/db.ts";
+import { oakCors } from "https://deno.land/x/cors/mod.ts";
 
+
+
+const PORT = 8000;
 const app = new Application();
 
-// CORS para hacer peticiones a otros lados
-app.use(oakCors()); 
+app.use(oakCors());
 
-// router para las rutas
-app.use(router.routes());
-app.use(router.allowedMethods());
+app.use(async (ctx, next) => {
+  ctx.response.headers.set("Content-Type", "application/json");
+  await next();
+});
 
-console.log("Servidor corriendo en http://localhost:8000");
+// Conexión a DB
+await connectDB();
 
-// servidor en el puerto 8000
-await app.listen({ port: 8000 });
+
+// Rutas
+app.use(userRouter.routes());
+app.use(userRouter.allowedMethods());
+app.use(cardRoutes.routes());
+
+// Ruta de prueba
+app.use((ctx) => {
+  if (ctx.request.url.pathname === "/") {
+    ctx.response.body = { message: "API de Usuarios" };
+  }
+});
+
+console.log(`Servidor en http://localhost:${PORT}`);
+await app.listen({ port: PORT });

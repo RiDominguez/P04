@@ -1,37 +1,78 @@
-import React, { useState } from 'react';
-import Card from '../Card';
-import SearchBar from '../SearchBar';
-import Pagination from '../Pagination';
-import { useCards } from '../../hooks/UseCards'; // Asegúrate de que la ruta sea correcta
+import { useState, useCallback } from "react";
+import React from 'react';
+import useCards from "../../hooks/UseCards";
+import Card from "../Card";
+import Pagination from "../Pagination";
+import SearchBar from "../SearchBar";
 
-const Home: React.FC = () => {
-  const [search, setSearch] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const limit = 10;
+const Home = () => {
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
 
-  // Usamos el hook personalizado para obtener las cartas filtradas y paginadas
-  const { paginatedCards, loading, totalPages } = useCards(currentPage, limit, search);
+  const { cards, loading, error, totalPages } = useCards(page, pageSize, search);
+
+  // Resetear a página 1 cuando se realiza una nueva búsqueda
+  const handleSearch = useCallback((searchTerm: string) => {
+    setPage(1); // Resetear a primera página al buscar
+    // Aquí puedes añadir lógica adicional si necesitas
+    console.log('Buscando:', searchTerm);
+  }, []);
 
   return (
-    <div className="App">
-      <h1>Pokémon Cards</h1>
-      <SearchBar search={search} setSearch={setSearch} />
-      <div className="card-container">
-        {loading ? (
-          <p>Loading...</p>
-        ) : paginatedCards.length > 0 ? (
-          paginatedCards.map((card) => (
-            <Card key={card.id} name={card.name} imageUrl={card.images.small} />
-          ))
-        ) : (
-          <p>No hay cartas que coincidan con la búsqueda.</p>
-        )}
-      </div>
-      <Pagination 
-        currentPage={currentPage} 
-        totalPages={totalPages} 
-        setCurrentPage={setCurrentPage} 
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem' }}>
+      <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Cartas de Pokémon TCG</h1>
+
+      <div style={{ marginBottom: '2rem' }}>
+      <SearchBar 
+        search={search}
+        setSearch={setSearch}
+        onSearch={handleSearch}
+        delay={400}
+        placeholder="Buscar por nombre de Pokémon..."
       />
+      </div>
+
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <p>Cargando cartas...</p>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ color: 'red', textAlign: 'center', padding: '1rem' }}>
+          <p>Error: {error}</p>
+        </div>
+      )}
+
+      {!loading && !error && cards.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <p>No se encontraron cartas que coincidan con tu búsqueda.</p>
+        </div>
+      )}
+
+      <div 
+        style={{ 
+          display: "grid", 
+          gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", 
+          gap: "1.5rem",
+          marginBottom: '2rem'
+        }}
+      >
+        {cards.map((card) => (
+          <Card key={card.id} card={card} />
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Pagination 
+            currentPage={page} 
+            totalPages={totalPages} 
+            onPageChange={setPage} 
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,26 +1,45 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
-interface SearchBarProps {
-  search: string;
-  setSearch: React.Dispatch<React.SetStateAction<string>>;
-}
+const SearchBar = ({ search, setSearch }) => {
+  const inputRef = useRef(null);
 
-const SearchBar: React.FC<SearchBarProps> = ({ search, setSearch }) => {
+  const handleClear = () => {
+    setSearch('');
+    inputRef.current?.focus();
+  };
+
   return (
-    <input
-      type="text"
-      placeholder="Buscar cartas"
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      style={{
-        padding: '0.5rem',
-        marginBottom: '1rem',
-        width: '100%',
-        maxWidth: '400px',
-        borderRadius: '4px',
-        border: '1px solid #ccc',
-      }}
-    />
+    <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+      <input
+        ref={inputRef}
+        type="text"
+        placeholder="Buscar cartas..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          padding: '0.5rem 2rem 0.5rem 1rem',
+          width: '100%',
+          borderRadius: '4px',
+          border: '1px solid #ccc'
+        }}
+      />
+      {search && (
+        <button
+          onClick={handleClear}
+          style={{
+            position: 'absolute',
+            right: '0.5rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          ✕
+        </button>
+      )}
+    </div>
   );
 };
 
