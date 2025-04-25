@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 
 interface PokemonCard {
@@ -11,10 +12,11 @@ interface PokemonCard {
 }
 
 const useCards = (page: number, pageSize: number, search: string = '') => {
-  const [cards, setCards] = useState<PokemonCard[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  
 
   useEffect(() => {
     const fetchCards = async () => {

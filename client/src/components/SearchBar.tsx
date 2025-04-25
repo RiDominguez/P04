@@ -1,6 +1,11 @@
 import React, { useRef } from 'react';
 
-const SearchBar = ({ search, setSearch }) => {
+type SearchBarProps = {
+  search: string;
+  setSearch: (value: string) => void;
+};
+
+const SearchBar = ({ search, setSearch }: SearchBarProps) => {
   const inputRef = useRef(null);
 
   const handleClear = () => {
@@ -9,32 +14,19 @@ const SearchBar = ({ search, setSearch }) => {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+    <div className="relative w-full max-w-md">
       <input
         ref={inputRef}
         type="text"
         placeholder="Buscar cartas..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        style={{
-          padding: '0.5rem 2rem 0.5rem 1rem',
-          width: '100%',
-          borderRadius: '4px',
-          border: '1px solid #ccc'
-        }}
+        className="w-full py-2 pl-4 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
       />
       {search && (
         <button
           onClick={handleClear}
-          style={{
-            position: 'absolute',
-            right: '0.5rem',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer'
-          }}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-800 focus:outline-none"
         >
           ✕
         </button>
