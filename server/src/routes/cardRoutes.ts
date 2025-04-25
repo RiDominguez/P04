@@ -13,8 +13,8 @@ const cardRoutes = new Router();
 
 
 cardRoutes
-  .get("/users/:userId/cards", authMiddleware, getUserCards)
-  .post("/users/:userId/cards", authMiddleware, addUserCard)
+  .get("/users/:userId/cards", getUserCards)
+  .post("/users/:userId/cards", addUserCard)
   .get("/cards", getCardsFromAPI) // Ruta para obtener cartas de Pokémon TCG
   .put(
     "/users/:userId/cards/:cardId",
@@ -24,7 +24,6 @@ cardRoutes
   )
   .delete(
     "/users/:userId/cards/:cardId",
-    authMiddleware,
     cardOwnership, // Middleware específico
     //deleteUserCard
   );
