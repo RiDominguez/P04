@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import CardsPage from './pages/CardsPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
+import UploadCard from './pages/UploadCard';
 import './index.css';
 
 // Función para verificar si el usuario está autenticado
@@ -26,6 +27,7 @@ function App() {
         
         {/* Rutas protegidas */}
         <Route path="/cartas" element={<ProtectedRoute><CardsPage /></ProtectedRoute>} />
+        <Route path="/subir" element={<ProtectedRoute><UploadCard /></ProtectedRoute>} />
 
         {/* Otras rutas */}
         <Route path="/register" element={<RegisterPage />} />
