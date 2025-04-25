@@ -1,44 +1,54 @@
 import React from 'react';
 
-interface CardProps {
+type CardProps = {
   card: {
     id: string;
     name: string;
+    number: string;
+    price?: number;
     images: {
       small: string;
       large: string;
     };
   };
-}
+};
 
-const Card: React.FC<CardProps> = ({ card }) => {
-  if (!card || !card.name || !card.images?.small) {
-    return null; // O muestra un placeholder si prefieres
-  }
+const Card = ({ card }: CardProps) => {
+  if (!card || !card.name || !card.images?.small) return null;
 
   return (
-    <div className="card" style={{
-      borderRadius: '8px',
-      overflow: 'hidden',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      backgroundColor: 'white'
-    }}>
-      <img 
-        src={card.images.small} 
+    <div className="bg-white rounded shadow border border-gray-200 w-full hover:shadow-lg transition duration-300">
+      <img
+        src={card.images.small}
         alt={`Carta de ${card.name}`}
-        style={{
-          width: '100%',
-          height: 'auto',
-          display: 'block'
-        }}
+        className="w-full object-cover rounded-t"
       />
-      <div style={{ padding: '0.5rem', textAlign: 'center' }}>
-        <h3 style={{ margin: 0, fontSize: '1rem' }}>
-          {card.name}
-        </h3>
+      <div className="p-3 text-center">
+        <h3 className="text-sm font-semibold text-gray-900">{card.name}</h3>
+        <p className="text-xs text-gray-500">{card.number}/159</p>
+
+        {/* Precio */}
+        <p className="text-blue-600 font-semibold text-sm mt-1">
+          ${card.price?.toFixed(2) ?? '0.00'}
+        </p>
+
+        {/* Controles de cantidad */}
+        <div className="flex justify-center items-center gap-2 mt-2 text-sm text-gray-600">
+          <button className="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200">−</button>
+          <span>0</span>
+          <button className="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200">+</button>
+        </div>
+
+        {/* Acciones: colección / wishlist / favoritos */}
+        <div className="flex justify-center gap-3 mt-2 text-gray-400 text-lg">
+          <span className="hover:text-gray-700 cursor-pointer">●</span>
+          <span className="hover:text-gray-700 cursor-pointer">♡</span>
+          <span className="hover:text-gray-700 cursor-pointer">★</span>
+        </div>
       </div>
     </div>
   );
 };
 
-export default React.memo(Card);
+export default Card;
+

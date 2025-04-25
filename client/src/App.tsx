@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Home from './components/pages/Home'; 
-import './App.css';
+import Home from './pages/Home'; 
+import CardsPage from './pages/CardsPage';
+import './index.css';
 
 function App() {
   return (
@@ -9,7 +10,8 @@ function App() {
       <Routes>
         {/* Ruta principal de la aplicación */}
         <Route path="/" element={<Home />} />
-        <Route path="*" element={<Navigate replace to="/" />} />
+        <Route path="/cartas" element={<CardsPage />} />
+        <Route path="/" element={<Navigate replace to="/" />} />
       </Routes>
     </BrowserRouter>
   );

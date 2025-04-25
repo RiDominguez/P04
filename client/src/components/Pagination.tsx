@@ -1,83 +1,59 @@
 import React from 'react';
 
-interface PaginationProps {
+type PaginationProps = {
   currentPage: number;
   totalPages: number;
-  onPageChange: (page: number) => void; // Cambiado a un nombre más descriptivo
-  className?: string; // Para estilos externos
-}
+  onPageChange: (page: number) => void;
+  className?: string;
+};
 
-const Pagination: React.FC<PaginationProps> = ({ 
-  currentPage, 
-  totalPages, 
+const Pagination = ({
+  currentPage,
+  totalPages,
   onPageChange,
-  className 
-}) => {
-  // Si no hay páginas o solo una, no mostrar la paginación
+  className,
+}: PaginationProps) => {
   if (totalPages <= 1) return null;
 
   const handlePrevious = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
-    }
+    if (currentPage > 1) onPageChange(currentPage - 1);
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages) {
-      onPageChange(currentPage + 1);
-    }
+    if (currentPage < totalPages) onPageChange(currentPage + 1);
   };
 
   return (
-    <div className={`pagination ${className || ''}`} style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '1rem',
-      margin: '2rem 0',
-      padding: '0.5rem'
-    }}>
+    <div className={`flex justify-center items-center gap-6 my-8 ${className || ''}`}>
       <button
         onClick={handlePrevious}
         disabled={currentPage === 1}
-        aria-label="Previous page"
-        style={{
-          padding: '0.5rem 1rem',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
-          background: 'white',
-          cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-          opacity: currentPage === 1 ? 0.5 : 1
-        }}
+        className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition ${
+          currentPage === 1
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+        }`}
       >
-        Previous
+        ◀ Anterior
       </button>
-      
-      <span style={{
-        minWidth: '120px',
-        textAlign: 'center',
-        fontWeight: '500'
-      }}>
-        Page {currentPage} of {totalPages}
+
+      <span className="text-gray-700 text-sm font-semibold">
+        Página <span className="text-blue-600">{currentPage}</span> de {totalPages}
       </span>
-      
+
       <button
         onClick={handleNext}
         disabled={currentPage === totalPages}
-        aria-label="Next page"
-        style={{
-          padding: '0.5rem 1rem',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
-          background: 'white',
-          cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-          opacity: currentPage === totalPages ? 0.5 : 1
-        }}
+        className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition ${
+          currentPage === totalPages
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+        }`}
       >
-        Next
+        Siguiente ▶
       </button>
     </div>
   );
 };
 
-export default React.memo(Pagination);
+export default Pagination;
