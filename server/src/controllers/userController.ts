@@ -3,7 +3,7 @@ import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 import { client } from "../db/db.ts";
 import { z } from "https://deno.land/x/zod/mod.ts";
 import { RouterContext } from "https://deno.land/x/oak/mod.ts";
-import { create } from "https://deno.land/x/djwt@v3.0.2/mod.ts"; // Importar create desde la versión 3.0.2 de djwt
+import { create } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
  
 
 const env = config();

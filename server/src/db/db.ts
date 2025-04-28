@@ -1,7 +1,7 @@
 import { config } from "https://deno.land/x/dotenv/mod.ts";
 import { Client } from "https://deno.land/x/postgres/mod.ts";
 
-const env = config({ }); //si falta el .env
+const env = config(); //si falta el .env
 
 const requiredVars = ["DB_USER", "DB_NAME", "DB_HOST"];
 for (const varName of requiredVars) {

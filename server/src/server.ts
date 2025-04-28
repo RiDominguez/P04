@@ -3,6 +3,7 @@ import userRouter from "./routes/userRoutes.ts";
 import cardRoutes from "./routes/cardRoutes.ts";
 import { connectDB } from "./db/db.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
+import uploadrouter from "./routes/upload.ts";
 
 
 
@@ -24,6 +25,9 @@ await connectDB();
 app.use(userRouter.routes());
 app.use(userRouter.allowedMethods());
 app.use(cardRoutes.routes());
+app.use(cardRoutes.allowedMethods());
+app.use(uploadrouter.routes());
+app.use(uploadrouter.allowedMethods());
 
 // Ruta de prueba
 app.use((ctx) => {

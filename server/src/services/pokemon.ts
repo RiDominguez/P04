@@ -7,16 +7,31 @@ export const getCardsFromAPI = async ({ request, response }: Context) => {
       parseInt(request.url.searchParams.get("pageSize") || "10"),
       250
     );
-    const search = (request.url.searchParams.get("search") || "").toLowerCase();
 
-    // Construir URL de la API con parámetros de búsqueda
-    let apiUrl = `https://api.pokemontcg.io/v2/cards?page=${page}&pageSize=${pageSize}`;
-    
-    // Si hay término de búsqueda, añadirlo como parámetro name
+    const search = request.url.searchParams.get("search") || "";
+    const type = request.url.searchParams.get("type") || "";
+    const rarity = request.url.searchParams.get("rarity") || "";
+
+    // Construir query dinámica
+    const queryParts = [];
+
     if (search) {
-      apiUrl += `&q=name:${encodeURIComponent(`*${search}*`)}`;
-      // También puedes usar: `&q=name:${encodeURIComponent(search)}*` para búsqueda que comience con
+      queryParts.push(`name:*${search}*`);
     }
+    if (type) {
+      queryParts.push(`types:${type}`);
+    }
+    if (rarity) {
+      queryParts.push(`rarity:"${rarity}"`);
+    }
+
+
+    const queryString = queryParts.length > 0 ? `q=${encodeURIComponent(queryParts.join(" AND "))}` : "";
+
+    // Construir URL final
+    const apiUrl = `https://api.pokemontcg.io/v2/cards?${queryString}&page=${page}&pageSize=${pageSize}`;
+
+    console.log("API URL construida:", apiUrl);
 
     const apiResponse = await fetch(apiUrl, {
       method: "GET",
@@ -38,7 +53,6 @@ export const getCardsFromAPI = async ({ request, response }: Context) => {
 
     const apiData = await apiResponse.json();
 
-    // Ya no necesitamos filtrar manualmente, la API lo hace
     response.status = 200;
     response.body = {
       success: true,

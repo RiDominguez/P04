@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar'; // ajusta la ruta si es necesario
+import Navbar from '../components/Navbar'; // Ajusta si tu ruta es diferente
 
 const UploadCard = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -22,53 +22,57 @@ const UploadCard = () => {
     formData.append('image', selectedFile);
 
     try {
-      const res = await fetch('http://localhost:8000/upload', {
+      const res = await fetch('http://localhost:8000/api/cards/upload', {
         method: 'POST',
         body: formData,
       });
 
       const data = await res.json();
-      setResult(data.name || "Carta reconocida");
+      setResult(data?.card?.name || "Recognition failed");
     } catch (err) {
       console.error(err);
-      setResult("Error al subir la imagen");
+      setResult("Error uploading image.");
     }
   };
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-[#0d1b2a] text-white py-16 px-4">
-        <div className="max-w-2xl mx-auto bg-[#1e2a3a] p-8 rounded-lg shadow-lg">
-          <h1 className="text-2xl font-bold text-orange-500 mb-6">Escanea tu carta Pokémon</h1>
+      <div className="min-h-screen bg-[#0d1b2a] text-white px-4 py-8 flex flex-col items-center">
+        <div className="w-full max-w-md md:max-w-2xl bg-[#1e2a3a] p-6 md:p-10 rounded-lg shadow-lg">
+          <h1 className="text-2xl md:text-3xl font-bold text-orange-500 mb-6 text-center">
+            Upload Your Pokémon Card
+          </h1>
 
-          <p className="mb-4 text-sm text-gray-300">
-            Sube una imagen clara de la carta. El sistema intentará identificarla automáticamente.
+          <p className="mb-6 text-sm md:text-base text-gray-300 text-center">
+            Take a clear picture of the card to recognize it automatically.
           </p>
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="block mb-4 text-sm text-white"
-          />
+          <div className="flex flex-col items-center space-y-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="block w-full text-sm text-white"
+            />
 
-          {preview && (
-            <div className="mb-4">
-              <img src={preview} alt="Preview" className="rounded-md w-full" />
-            </div>
-          )}
+            {preview && (
+              <div className="w-full flex justify-center">
+                <img src={preview} alt="Preview" className="w-full md:w-2/3 rounded shadow-md" />
+              </div>
+            )}
 
-          <button
-            onClick={handleUpload}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-4 py-2 rounded"
-          >
-            Subir y reconocer
-          </button>
+            <button
+              onClick={handleUpload}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded transition"
+            >
+              Upload and Recognize
+            </button>
+          </div>
 
           {result && (
-            <div className="mt-6 bg-white text-black px-4 py-3 rounded shadow text-center">
-              Resultado: <strong>{result}</strong>
+            <div className="mt-6 bg-white text-black px-4 py-3 rounded text-center">
+              Recognized card: <strong>{result}</strong>
             </div>
           )}
         </div>

@@ -27,10 +27,6 @@ const Card = ({ card }: CardProps) => {
         <h3 className="text-sm font-semibold text-gray-900">{card.name}</h3>
         <p className="text-xs text-gray-500">{card.number}/159</p>
 
-        {/* Precio */}
-        <p className="text-blue-600 font-semibold text-sm mt-1">
-          ${card.price?.toFixed(2) ?? '0.00'}
-        </p>
 
         {/* Controles de cantidad */}
         <div className="flex justify-center items-center gap-2 mt-2 text-sm text-gray-600">
@@ -39,12 +35,6 @@ const Card = ({ card }: CardProps) => {
           <button className="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200">+</button>
         </div>
 
-        {/* Acciones: colección / wishlist / favoritos */}
-        <div className="flex justify-center gap-3 mt-2 text-gray-400 text-lg">
-          <span className="hover:text-gray-700 cursor-pointer">●</span>
-          <span className="hover:text-gray-700 cursor-pointer">♡</span>
-          <span className="hover:text-gray-700 cursor-pointer">★</span>
-        </div>
       </div>
     </div>
   );
