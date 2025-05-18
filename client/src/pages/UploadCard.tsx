@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar'; // Ajusta si tu ruta es diferente
+import Navbar from '../components/Navbar';
+import { Toaster, toast } from 'react-hot-toast'; 
 
 const UploadCard = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -16,10 +17,15 @@ const UploadCard = () => {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      toast.error('Please select a file before uploading.');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('image', selectedFile);
+
+    toast.loading('Uploading and recognizing card...', { id: 'upload-toast' });
 
     try {
       const res = await fetch('http://localhost:8000/api/cards/upload', {
@@ -28,16 +34,21 @@ const UploadCard = () => {
       });
 
       const data = await res.json();
-      setResult(data?.card?.name || "Recognition failed");
+      const recognizedName = data?.card?.name || "Recognition failed";
+      setResult(recognizedName);
+
+      toast.success(`Recognition complete: ${recognizedName}`, { id: 'upload-toast' });
     } catch (err) {
       console.error(err);
       setResult("Error uploading image.");
+      toast.error('Failed to upload or recognize the image.', { id: 'upload-toast' });
     }
   };
 
   return (
     <>
       <Navbar />
+      <Toaster position="top-right" /> {/* Asegúrate de poner esto una vez */}
       <div className="min-h-screen bg-[#0d1b2a] text-white px-4 py-8 flex flex-col items-center">
         <div className="w-full max-w-md md:max-w-2xl bg-[#1e2a3a] p-6 md:p-10 rounded-lg shadow-lg">
           <h1 className="text-2xl md:text-3xl font-bold text-orange-500 mb-6 text-center">
@@ -82,4 +93,5 @@ const UploadCard = () => {
 };
 
 export default UploadCard;
+
 

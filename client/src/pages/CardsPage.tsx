@@ -21,7 +21,7 @@ const CardsPage = () => {
 
   const handleSearch = (term: string) => {
     setSearch(term);
-    setPage(1); // Reset page on new search
+    setPage(1); 
   };
 
   return (

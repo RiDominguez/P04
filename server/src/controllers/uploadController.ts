@@ -1,6 +1,6 @@
 import { Context } from "https://deno.land/x/oak/mod.ts";
 
-// OCR.Space: send image and extract text
+// ocr spaece api
 const extractTextFromOCR = async (file: File): Promise<string> => {
   const arrayBuffer = await file.arrayBuffer();
   const blob = new Blob([new Uint8Array(arrayBuffer)], { type: file.type });
@@ -14,7 +14,7 @@ const extractTextFromOCR = async (file: File): Promise<string> => {
   const ocrResponse = await fetch("https://api.ocr.space/parse/image", {
     method: "POST",
     headers: {
-      apikey: "K82902711788957", // you can move this to env later
+      apikey: "K82902711788957", 
     },
     body: formData,
   });
@@ -24,7 +24,7 @@ const extractTextFromOCR = async (file: File): Promise<string> => {
   return parsedText.trim();
 };
 
-// Tries to extract the card name from OCR text
+// intenta leer el nombre de la carta desde el texto extraído
 const getCardNameFromText = (ocrText: string): string => {
   const lines = ocrText.split("\n").map((line) => line.trim());
 
@@ -54,15 +54,15 @@ export const uploadAndRecognizeCard = async (ctx: Context) => {
       return;
     }
 
-    // Step 1: Extract text using OCR
+    // extrae el texto
     const ocrText = await extractTextFromOCR(file);
     console.log("Full OCR text:", ocrText);
 
-    // Step 2: Extract the best possible card name
+    // lo intenta parsear
     const cardName = getCardNameFromText(ocrText);
     console.log("Recognized card name:", cardName);
 
-    // Step 3: Query Pokémon TCG API
+    // llamada a la API de Pokémon TCG
     const apiUrl = `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(`*${cardName}*`)}&pageSize=1`;
 
     const apiResponse = await fetch(apiUrl, {
@@ -88,7 +88,7 @@ export const uploadAndRecognizeCard = async (ctx: Context) => {
       return;
     }
 
-    // Step 4: Return recognized card data
+    // devuelve la información de la carta
     ctx.response.status = 200;
     ctx.response.body = {
       success: true,
