@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from "react";
 
 type CardProps = {
   card: {
-    id: string;
+    id: string;  // Este es el official_id que usa el backend
     name: string;
     number: string;
     price?: number;
@@ -13,8 +13,87 @@ type CardProps = {
   };
 };
 
+const estadosCarta = [
+  "Nuevo",
+  "Excelente",
+  "Bueno",
+  "Aceptable",
+  "Dañado",
+];
+
 const Card = ({ card }: CardProps) => {
-  if (!card || !card.name || !card.images?.small) return null;
+  const [cantidad, setCantidad] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAddClick = async () => {
+    const estado = window.prompt(
+      `Selecciona el estado de la carta:\n${estadosCarta.join(", ")}`,
+      estadosCarta[0]
+    );
+
+    if (!estado || !estadosCarta.includes(estado)) {
+      alert("Estado inválido o cancelado");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No hay token de autenticación");
+      }
+
+      const getUserIdFromToken = (token: string): number => {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const payload = JSON.parse(window.atob(base64));
+
+          if (!payload.id) {
+            throw new Error("El token no contiene un ID de usuario");
+          }
+          return parseInt(payload.id);
+        } catch (error) {
+          console.error("Error decodificando token:", error);
+          throw new Error("Token inválido");
+        }
+      };
+
+      const userId = getUserIdFromToken(token);
+
+      const requestBody = {
+        official_id: card.id,   // Ajustado al backend
+        condition: estado,
+        is_for_trade: false,    // Puedes cambiar o añadir UI para esta opción luego
+      };
+
+      const response = await fetch(`http://localhost:8000/users/${userId}/cards`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        mode: "cors",
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      setCantidad(prev => prev + 1);
+      alert("Carta añadida correctamente al inventario");
+
+    } catch (error: any) {
+      console.error("Error completo:", error);
+      alert(`Error: ${error.message || "No se pudo añadir la carta"}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded shadow border border-gray-200 w-full hover:shadow-lg transition duration-300">
@@ -27,18 +106,26 @@ const Card = ({ card }: CardProps) => {
         <h3 className="text-sm font-semibold text-gray-900">{card.name}</h3>
         <p className="text-xs text-gray-500">{card.number}/159</p>
 
-
-        {/* Controles de cantidad */}
         <div className="flex justify-center items-center gap-2 mt-2 text-sm text-gray-600">
-          <button className="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200">−</button>
-          <span>0</span>
-          <button className="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200">+</button>
+          <button
+            className="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            disabled={cantidad === 0 || isLoading}
+            onClick={() => setCantidad(Math.max(0, cantidad - 1))}
+          >
+            −
+          </button>
+          <span>{cantidad}</span>
+          <button
+            className="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            onClick={handleAddClick}
+            disabled={isLoading}
+          >
+            {isLoading ? "..." : "+"}
+          </button>
         </div>
-
       </div>
     </div>
   );
 };
 
 export default Card;
-

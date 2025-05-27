@@ -3,13 +3,13 @@ import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 import { client } from "../db/db.ts";
 import { z } from "https://deno.land/x/zod/mod.ts";
 import { RouterContext } from "https://deno.land/x/oak/mod.ts";
-import { create } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
+import { create, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
  
 
 const env = config();
 
-const secretKey = env.JWT_SECRET_KEY || "defaultSecret"; // Usar un valor por defecto si no está configurado en el .env
-
+const secretKey = env.JWT_SECRET_KEY?.trim(); // Usar un valor por defecto si no está configurado en el .env
+console.log("Clave secreta:", `"${secretKey}"`);
 const userSchema = z.object({
   username: z.string().min(3),
   email: z.string().email(),
@@ -103,7 +103,14 @@ export const createUser = async (ctx: RouterContext<"/users">) => {
     if (error instanceof z.ZodError) {
       ctx.throw(400, error.errors.map(e => e.message).join(", "));
     }
-    ctx.throw(500, error.message);
+    if (error instanceof z.ZodError) {
+      ctx.throw(400, error.errors.map(e => e.message).join(", "));
+    }
+    if (error instanceof Error) {
+      ctx.throw(500, error.message);
+    } else {
+      ctx.throw(500, "Internal Server Error");
+    }
   }
 };
 
@@ -131,9 +138,9 @@ export const deleteUser = async (ctx: RouterContext<"/users/:id">) => {
   }
 };
 
-const convertToCryptoKey = async (secret: string): Promise<CryptoKey> => {
+const convertToCryptoKey = async (secretKey: string): Promise<CryptoKey> => {
   const encoder = new TextEncoder();
-  const keyData = encoder.encode(secret); // Convertir la clave secreta en bytes
+  const keyData = encoder.encode(secretKey); // Convertir la clave secreta en bytes
   const cryptoKey = await crypto.subtle.importKey(
     "raw", // Tipo de clave (raw)
     keyData, // Los datos de la clave
@@ -173,7 +180,7 @@ export const loginUser = async (ctx: RouterContext<"/login">) => {
     }
 
     // Generar el token JWT (usando la clave secreta convertida)
-    const payload = { id: user.id, username: user.username, email: user.email };
+    const payload = { id: user.id, username: user.username, email: user.email, exp: getNumericDate(60 * 60), };
     const cryptoKey = await convertToCryptoKey(secretKey); // Convertimos la clave secreta a CryptoKey
 
     const token = await create({ alg: "HS256", typ: "JWT" }, payload, cryptoKey); // Usamos la clave CryptoKey
@@ -194,7 +201,11 @@ export const loginUser = async (ctx: RouterContext<"/login">) => {
       ctx.throw(400, error.errors.map(e => e.message).join(", "));
     } else {
       console.error("Error en loginUser:", error);
-      ctx.throw(500, error.message || "Internal Server Error");
+      if (error && typeof error === "object" && "message" in error) {
+        ctx.throw(500, (error as { message: string }).message || "Internal Server Error");
+      } else {
+        ctx.throw(500, "Internal Server Error");
+      }
     }
   }
 };

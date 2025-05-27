@@ -7,7 +7,7 @@ const Home = () => {
     <div className="bg-slate-900 text-white min-h-screen">
       <Navbar />
       <Hero />
-      {/* Puedes agregar <Features />, <Footer />, etc. */}
+      {/* footer */}
     </div>
   );
 };

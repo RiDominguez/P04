@@ -5,6 +5,7 @@ import CardsPage from './pages/CardsPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import UploadCard from './pages/UploadCard';
+import InventoryPage from './pages/Inventory'; // Asegúrate de que esta ruta sea correcta
 import './index.css';
 
 // Función para verificar si el usuario está autenticado
@@ -32,6 +33,7 @@ function App() {
         {/* Otras rutas */}
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/inventario" element={<InventoryPage />} />
 
         {/* Redirigir a la página principal si la ruta no existe */}
         <Route path="*" element={<Navigate replace to="/" />} />

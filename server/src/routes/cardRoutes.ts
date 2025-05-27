@@ -1,31 +1,22 @@
 import { Router } from "https://deno.land/x/oak/mod.ts";
-import { 
-  getUserCards,
+import {
   addUserCard,
-  //updateUserCard,
-  //deleteUserCard
+  updateUserCard,
+  deleteUserCard,
+  getUserCards
 } from "../controllers/userCardController.ts";
 import { authMiddleware } from "../middleware/auth.ts";
-import { cardOwnership } from "../middleware/cardOwnership.ts";
-import { getCardsFromAPI } from "../services/pokemon.ts"; // Importar la función para obtener cartas de Pokémon TCG
+import { getCardsFromAPI } from "../services/pokemon.ts";
 
-const cardRoutes = new Router();
+const cardRouter = new Router();
 
 
-cardRoutes
-  .get("/users/:userId/cards", getUserCards)
-  .post("/users/:userId/cards", addUserCard)
-  .get("/cards", getCardsFromAPI) // Ruta para obtener cartas de Pokémon TCG
-  .put(
-    "/users/:userId/cards/:cardId",
-    authMiddleware,
-    cardOwnership, // Middleware específico
-    //updateUserCard
-  )
-  .delete(
-    "/users/:userId/cards/:cardId",
-    cardOwnership, // Middleware específico
-    //deleteUserCard
-  );
+cardRouter
+  .post("/users/:userId/cards", authMiddleware, addUserCard)
+  .put("/users/:userId/cards/:cardId",authMiddleware, updateUserCard)
+  .delete("/users/:userId/cards/:cardId", authMiddleware, deleteUserCard)
+  .get("/users/:userId/cards",authMiddleware, getUserCards)
+  
+  .get("/cards", getCardsFromAPI);
 
-export default cardRoutes;
+export default cardRouter;

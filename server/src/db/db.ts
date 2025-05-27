@@ -23,7 +23,11 @@ export const connectDB = async () => {
     await client.connect();
     console.log("Conexión exitosa a PostgreSQL");
   } catch (error) {
-    console.error("Error al conectar a PostgreSQL:", error.message);
+    if (error instanceof Error) {
+      console.error("Error al conectar a PostgreSQL:", error.message);
+    } else {
+      console.error("Error al conectar a PostgreSQL:", String(error));
+    }
     throw error; 
   }
 };
@@ -33,6 +37,10 @@ export const closeDB = async () => {
     await client.end();
     console.log("Conexión cerrada");
   } catch (error) {
-    console.error("Error al cerrar la conexión:", error.message);
+    if (error instanceof Error) {
+      console.error("Error al cerrar la conexión:", error.message);
+    } else {
+      console.error("Error al cerrar la conexión:", error);
+    }
   }
 };

@@ -44,6 +44,7 @@ const Navbar = () => {
           <Link to="/sets" className="hover:text-gray-300">Sets</Link>
           <Link to="/cartas" className="hover:text-gray-300">Cards</Link>
           <Link to="/subir" className="hover:text-gray-300">Upload</Link>
+          <Link to="/inventario" className="hover:text-gray-300">inventory</Link>
         </div>
 
         {/* Menú usuario */}
