@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import UploadCard from './pages/UploadCard';
 import InventoryPage from './pages/Inventory'; // Asegúrate de que esta ruta sea correcta
+import DecksPage from './components/decks';
 import './index.css';
 
 // Función para verificar si el usuario está autenticado
@@ -29,11 +30,13 @@ function App() {
         {/* Rutas protegidas */}
         <Route path="/cartas" element={<ProtectedRoute><CardsPage /></ProtectedRoute>} />
         <Route path="/subir" element={<ProtectedRoute><UploadCard /></ProtectedRoute>} />
+        <Route path="/deck" element={<ProtectedRoute><DecksPage /></ProtectedRoute>} />
 
         {/* Otras rutas */}
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/inventario" element={<InventoryPage />} />
+        
 
         {/* Redirigir a la página principal si la ruta no existe */}
         <Route path="*" element={<Navigate replace to="/" />} />
