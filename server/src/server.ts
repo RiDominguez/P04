@@ -5,6 +5,7 @@ import { connectDB } from "./db/db.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
 import uploadrouter from "./routes/upload.ts";
 import collectionRouter from "./routes/collectionRoutres.ts";
+import { createStatsRoutes } from "./routes/statRoutes.ts";
 
 const PORT = 8000;
 const app = new Application();
@@ -33,6 +34,8 @@ app.use(uploadrouter.routes());
 app.use(uploadrouter.allowedMethods());
 app.use(collectionRouter.routes());
 app.use(collectionRouter.allowedMethods());
+app.use(createStatsRoutes().routes());
+app.use(createStatsRoutes().allowedMethods());
 
 console.log(`Servidor en http://localhost:${PORT}`);
 await app.listen({ port: PORT });

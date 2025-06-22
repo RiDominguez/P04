@@ -8,6 +8,7 @@ import UploadCard from './pages/UploadCard';
 import InventoryPage from './pages/Inventory'; // Asegúrate de que esta ruta sea correcta
 import DecksPage from './components/decks';
 import './index.css';
+import StatsPage from './pages/statPage';
 
 // Función para verificar si el usuario está autenticado
 const useAuth = () => {
@@ -31,7 +32,9 @@ function App() {
         <Route path="/cartas" element={<ProtectedRoute><CardsPage /></ProtectedRoute>} />
         <Route path="/subir" element={<ProtectedRoute><UploadCard /></ProtectedRoute>} />
         <Route path="/deck" element={<ProtectedRoute><DecksPage /></ProtectedRoute>} />
+        <Route path="/estadisticas" element={<ProtectedRoute><StatsPage /></ProtectedRoute>} />
 
+        {/* Rutas públicas */}
         {/* Otras rutas */}
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
