@@ -1,339 +1,211 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
+import Modal from "../components/Modal";
 
 interface Card {
   id: number;
   name: string;
-  images: {
-    small: string;
-    large: string;
-  };
+  official_id?: string;
+  images?: { small: string };
 }
 
 interface Collection {
   id: number;
   name: string;
-  cards?: Card[]; // Hacer cards opcional ya que se carga después
-  
+  cards?: Card[];
 }
 
 const Collections: React.FC = () => {
   const [collections, setCollections] = useState<Collection[]>([]);
-  const [newCollectionName, setNewCollectionName] = useState("");
-  const [expandedCollectionId, setExpandedCollectionId] = useState<number | null>(null);
+  const [deckModal, setDeckModal] = useState<Collection | null>(null);
+  const [showDeckModal, setShowDeckModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [inventory, setInventory] = useState<Card[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedDeck, setSelectedDeck] = useState<number | null>(null);
+  const [newDeckName, setNewDeckName] = useState("");
   const [error, setError] = useState<string | null>(null);
-
-  const userId = 6; // solo para test
-
-  const fetchCollections = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`http://localhost:8000/users/${userId}/collections`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al obtener colecciones");
-      }
-
-      const data = await response.json();
-      console.log("Datos completos de la API:", data);
-      
-    
-      let collectionsData: Collection[] = [];
-      
-      if (Array.isArray(data)) {
-        collectionsData = data;
-      } else if (data.collections && Array.isArray(data.collections)) {
-        collectionsData = data.collections;
-      } else if (data.data && Array.isArray(data.data)) {
-        collectionsData = data.data;
-      }
-      
-      console.log("Datos de colecciones a guardar:", collectionsData);
-      setCollections(collectionsData);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching collections:", err);
-      setError("Error al cargar las colecciones");
-      setCollections([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchInventory = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`http://localhost:8000/users/${userId}/cards`, {
-        headers: { Authorization: `Bearer ${token}` },
-        method: "GET",
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al obtener inventario");
-      }
-
-      const data = await response.json();
-      setInventory(data.cards ?? []);
-    } catch (err) {
-      console.error("Error fetching inventory:", err);
-      setError("Error al cargar el inventario");
-      setInventory([]);
-    }
-  };
-
-  const fetchCards = async (collectionId: number) => {
+  const userId = 6;
   const token = localStorage.getItem("token");
-  try {
-    const response = await fetch(
-      `http://localhost:8000/collections/${collectionId}/cards`, 
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
 
-    if (!response.ok) {
-      throw new Error("Error al obtener cartas del mazo");
-    }
+  const withImages = (arr: any[]) =>
+    arr.map((c) => {
+      if (c.images?.small) return c;
+      const [setId, num] = c.official_id?.split("-") || ["", ""];
+      return { ...c, images: { small: `https://images.pokemontcg.io/${setId}/${num}.png` } };
+    });
 
-    const data = await response.json();
-    setCollections((prev) =>
-      prev.map((col) =>
-        col.id === collectionId ? { ...col, cards: data.cards || data } : col
-      )
-    );
-  } catch (err) {
-    console.error("Error fetching cards:", err);
-    setError("Error al cargar las cartas del mazo");
-  }
-};
-
-  const handleCreateCollection = async () => {
-    if (!newCollectionName.trim()) return;
-
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`http://localhost:8000/users/${userId}/collections`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name: newCollectionName }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al crear colección");
-      }
-
-      setNewCollectionName("");
-      await fetchCollections();
-    } catch (err) {
-      console.error("Error creating collection:", err);
-      setError("Error al crear la colección");
-    }
+  const getDecks = async () => {
+    const res = await fetch(`http://localhost:8000/users/${userId}/collections`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    setCollections(Array.isArray(data) ? data : data.collections || []);
+  };
+  const getInventory = async () => {
+    const res = await fetch(`http://localhost:8000/users/${userId}/cards`, { headers: { Authorization: `Bearer ${token}` } });
+    const d = await res.json();
+    setInventory(withImages(d.cards || d));
+  };
+  const getDeckCards = async (id: number) => {
+    const res = await fetch(`http://localhost:8000/collections/${id}/cards`, { headers: { Authorization: `Bearer ${token}` } });
+    const d = await res.json();
+    return withImages(d.cards || d);
   };
 
-  const handleAddCard = async (collectionId: number, cardId: number) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        `http://localhost:8000/users/${userId}/collections/${collectionId}/cards`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ cardId }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al agregar carta al mazo");
-      }
-
-      await fetchCards(collectionId);
-    } catch (err) {
-      console.error("Error adding card:", err);
-      setError("Error al agregar carta al mazo");
-    }
+  const openDeck = async (col: Collection) => {
+    const cards = await getDeckCards(col.id);
+    setDeckModal({ ...col, cards });
+    setSelectedDeck(col.id);
+    setShowDeckModal(true);
   };
 
-  const handleDeleteCard = async (collectionId: number, cardId: number) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        `http://localhost:8000/users/${userId}/collections/${collectionId}/cards/${cardId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al eliminar carta del mazo");
-      }
-
-      await fetchCards(collectionId);
-    } catch (err) {
-      console.error("Error deleting card:", err);
-      setError("Error al eliminar carta del mazo");
-    }
+  const openEditDeck = async (col: Collection) => {
+    const cards = await getDeckCards(col.id);
+    setDeckModal({ ...col, cards });
+    setSelectedDeck(col.id);
+    setShowEditModal(true);
   };
 
-  const handleDeleteCollection = async (collectionId: number) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        `http://localhost:8000/users/${userId}/collections/${collectionId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al eliminar colección");
-      }
-
-      await fetchCollections();
-    } catch (err) {
-      console.error("Error deleting collection:", err);
-      setError("Error al eliminar la colección");
-    }
+  const addCard = async (deckId: number, userCardId: number) => {
+    await fetch(`http://localhost:8000/users/${userId}/collections/${deckId}/cards`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ user_card_id: userCardId }),
+    });
+    const cards = await getDeckCards(deckId);
+    setDeckModal((d) => (d && d.id === deckId ? { ...d, cards } : d));
   };
-
-  const toggleExpand = async (collectionId: number) => {
-    const isExpanding = expandedCollectionId !== collectionId;
-    setExpandedCollectionId(isExpanding ? collectionId : null);
-
-    if (isExpanding) {
-      await fetchCards(collectionId);
-    }
+  const removeCard = async (deckId: number, userCardId: number) => {
+    await fetch(`http://localhost:8000/users/${userId}/collections/${deckId}/cards/${userCardId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const cards = await getDeckCards(deckId);
+    setDeckModal((d) => (d && d.id === deckId ? { ...d, cards } : d));
+  };
+  const createDeck = async () => {
+    if (!newDeckName.trim()) return;
+    await fetch(`http://localhost:8000/users/${userId}/collections`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: newDeckName }),
+    });
+    setNewDeckName("");
+    getDecks();
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      await Promise.all([fetchCollections(), fetchInventory()]);
-      setIsLoading(false);
-    };
-    loadData();
+    getDecks();
+    getInventory();
   }, []);
 
-  return (
-    <div className="bg-gray-100 min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1 max-w-4xl mx-auto px-4 pt-24 pb-12">
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Mis Mazos</h1>
+  const progress = (n: number) => Math.min(100, (n / 60) * 100);
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
-          </div>
-        )}
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      <Navbar />
+      <main className="pt-24 max-w-5xl mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-6 text-center">Mis Mazos</h1>
 
         <div className="mb-6 flex gap-2">
           <input
             type="text"
             placeholder="Nombre del nuevo mazo"
-            className="flex-1 border px-4 py-2 rounded shadow"
-            value={newCollectionName}
-            onChange={(e) => setNewCollectionName(e.target.value)}
+            className="flex-1 bg-gray-800 text-white border border-gray-600 px-4 py-2 rounded"
+            value={newDeckName}
+            onChange={(e) => setNewDeckName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && createDeck()}
           />
           <button
-            onClick={handleCreateCollection}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+            onClick={createDeck}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           >
             Crear
           </button>
         </div>
 
-        {isLoading ? (
-          <p className="text-gray-500 text-center">Cargando mazos...</p>
-        ) : collections.length === 0 ? (
-          <p className="text-gray-500 text-center">No tienes mazos creados.</p>
-        ) : (
-          collections.map((collection) => (
-            <div key={collection.id} className="mb-4 bg-white shadow rounded p-4">
-              <div className="flex justify-between items-center mb-2">
-                <h2 className="text-lg font-semibold">{collection.name}</h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => toggleExpand(collection.id)}
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    {expandedCollectionId === collection.id ? "Cerrar" : "Ver cartas"}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCollection(collection.id)}
-                    className="text-red-600 hover:underline text-sm"
-                  >
-                    Eliminar
-                  </button>
+        {collections.map((c) => (
+          <div key={c.id} className="bg-gray-800 p-4 rounded-lg mb-4 flex justify-between items-center">
+            <span className="font-semibold text-lg">{c.name}</span>
+            <div className="flex gap-2">
+              <button onClick={() => openEditDeck(c)} className="bg-blue-600 px-3 py-1 rounded">Editar mazo</button>
+            </div>
+          </div>
+        ))}
+      </main>
+
+      {showDeckModal && deckModal && (
+        <Modal title={deckModal.name} onClose={() => setShowDeckModal(false)}>
+          <div className="space-y-2">
+            {deckModal.cards?.map((card) => (
+              <div key={card.id} className="flex items-center gap-2">
+                <img src={card.images?.small} alt={card.name} className="w-10 h-14 rounded-md" />
+                <span>{card.name}</span>
+              </div>
+            ))}
+          </div>
+        </Modal>
+      )}
+
+      {showEditModal && deckModal && selectedDeck && (
+        <Modal title={`Editar: ${deckModal.name}`} onClose={() => setShowEditModal(false)}>
+          <div className="flex gap-6">
+            <div className="w-1/2 bg-[#1c1c24] text-white p-4 rounded-xl shadow-lg">
+              <div className="flex justify-between mb-4 text-sm">
+                <div>
+                  <div className="text-gray-400">Formato</div>
+                  <div className="font-semibold">Standard</div>
+                </div>
+               
+                <div className="text-right">
+                  <div className="text-gray-400">Cartas</div>
+                  <div className="font-semibold">{deckModal.cards?.length}/60</div>
                 </div>
               </div>
-
-              {expandedCollectionId === collection.id && (
-                <>
-                  <div className="mb-4">
-                    <select
-                      className="w-full border px-2 py-1 rounded"
-                      onChange={(e) => {
-                        const cardId = parseInt(e.target.value);
-                        if (cardId) handleAddCard(collection.id, cardId);
-                      }}
-                      defaultValue=""
-                    >
-                      <option value="" disabled>
-                        Agregar carta desde inventario
-                      </option>
-                      {inventory.map((card) => (
-                        <option key={card.id} value={card.id}>
-                          {card.name}
-                        </option>
-                      ))}
-                    </select>
+              <div className="h-2 w-full bg-gray-800 rounded-full mb-4">
+                <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${progress(deckModal.cards?.length || 0)}%` }} />
+              </div>
+              <div className="text-sm uppercase text-gray-400 font-bold flex justify-between border-b border-gray-700 pb-1 mb-2">
+                <span>Nombre</span>
+                <span>Qty</span>
+              </div>
+              {deckModal.cards?.map((card) => (
+                <div key={card.id} className="flex justify-between items-center bg-gray-800 hover:bg-gray-700 rounded-lg p-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <img src={card.images?.small} alt={card.name} className="w-8 h-8 rounded-md" />
+                    <span>{card.name}</span>
                   </div>
-
-                  {!collection.cards || collection.cards.length === 0 ? (
-                    <p className="text-gray-500">Este mazo no tiene cartas.</p>
-                  ) : (
-                    <ul className="space-y-1">
-                      {collection.cards.map((card) => (
-                        <li
-                          key={card.id}
-                          className="flex justify-between items-center border-b py-1"
-                        >
-                          <span>{card.name}</span>
-                          <button
-                            onClick={() => handleDeleteCard(collection.id, card.id)}
-                            className="text-red-500 text-sm hover:underline"
-                          >
-                            Eliminar
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </>
-              )}
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => removeCard(deckModal.id, card.id)} className="bg-gray-700 px-2 rounded">eliminar</button>
+                    <span>1</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))
-        )}
-      </main>
+
+            <div className="w-1/2">
+              <h3 className="text-lg font-semibold mb-2">Inventario</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {inventory.map((card) => {
+                  const isInDeck = deckModal.cards?.some((c) => c.id === card.id);
+                  return (
+                    <div
+                      key={card.id}
+                      onClick={() => addCard(deckModal.id, card.id)}
+                      className={`cursor-pointer p-2 rounded-lg flex flex-col items-center ${
+                        isInDeck ? "bg-gray-600" : "bg-gray-800 hover:bg-gray-700"
+                      }`}
+                    >
+                      <img src={card.images?.small} className="w-20 h-28 mb-1" />
+                      <span className="text-sm text-center">{card.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
 
 export default Collections;
-
-

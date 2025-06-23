@@ -43,7 +43,6 @@ const Navbar = () => {
           <Link to="/estadisticas" className="hover:text-gray-300">Dashboard</Link>
           <Link to="/deck" className="hover:text-gray-300">deck</Link>
           <Link to="/cartas" className="hover:text-gray-300">Cards</Link>
-          <Link to="/subir" className="hover:text-gray-300">Upload</Link>
           <Link to="/inventario" className="hover:text-gray-300">inventory</Link>
           <Link to="/trade" className="hover:text-gray-300">Market</Link>
         </div>

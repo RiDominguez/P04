@@ -37,23 +37,35 @@ export const getUserCollections = async (
   context.response.body = result.rows;
 };
 
-// Agregar carta a una colección
+// Agregar carta (de user_cards) a una colección
 export const addCardToCollection = async (
   context: RouterContext<"/users/:userId/collections/:collectionId/cards">
 ) => {
+  const userId = context.params.userId;
   const collectionId = context.params.collectionId;
-  const { cardId } = await context.request.body.json();
+  const { user_card_id } = await context.request.body.json();
 
+  // Validar que esa carta es del usuario
+  const check = await client.queryObject(
+    "SELECT 1 FROM user_cards WHERE id = $1 AND user_id = $2",
+    [user_card_id, userId]
+  );
+
+  if (check.rowCount === 0) {
+    context.throw(403, "Esa carta no te pertenece");
+  }
+
+  // Insertar en la colección
   await client.queryObject(
-    "INSERT INTO collection_cards (collection_id, card_id) VALUES ($1, $2)",
-    [collectionId, cardId]
+    "INSERT INTO collection_cards (collection_id, user_card_id) VALUES ($1, $2)",
+    [collectionId, user_card_id]
   );
 
   context.response.status = 201;
   context.response.body = { message: "Carta agregada a la colección" };
 };
 
-// Obtener cartas de una colección
+// Obtener cartas de una colección (con info personalizada)
 export const getCollectionCards = async (
   context: RouterContext<"/collections/:collectionId/cards">
 ) => {
@@ -66,30 +78,32 @@ export const getCollectionCards = async (
     type: string;
     expansion: string;
     official_id: string;
-    image_url: string;
+    condition: string;
+    is_for_trade: boolean;
   }>(
-    `SELECT pc.* 
-     FROM pokemon_cards pc
-     JOIN collection_cards cc ON pc.id = cc.card_id
+    `SELECT uc.id, pc.name, pc.rarity, pc.type, pc.expansion, pc.official_id,
+            uc.condition, uc.is_for_trade
+     FROM collection_cards cc
+     JOIN user_cards uc ON cc.user_card_id = uc.id
+     JOIN pokemon_cards pc ON uc.card_id = pc.id
      WHERE cc.collection_id = $1`,
     [collectionId]
   );
 
-  context.response.body = result.rows;
+  context.response.body = { cards: result.rows };
 };
 
+// Eliminar colección completa
 export const deleteCollection = async (
   context: RouterContext<"/users/:userId/collections/:collectionId">
 ) => {
   const collectionId = context.params.collectionId;
 
-  // Primero eliminamos las relaciones en collection_cards
   await client.queryObject(
     "DELETE FROM collection_cards WHERE collection_id = $1",
     [collectionId]
   );
 
-  // Luego eliminamos la colección
   await client.queryObject(
     "DELETE FROM collections WHERE id = $1",
     [collectionId]
@@ -99,13 +113,14 @@ export const deleteCollection = async (
   context.response.body = { message: "Colección eliminada" };
 };
 
+// Eliminar carta de una colección
 export const deleteCardFromCollection = async (
   context: RouterContext<"/users/:userId/collections/:collectionId/cards/:cardId">
 ) => {
   const { collectionId, cardId } = context.params;
 
   await client.queryObject(
-    "DELETE FROM collection_cards WHERE collection_id = $1 AND card_id = $2",
+    "DELETE FROM collection_cards WHERE collection_id = $1 AND user_card_id = $2",
     [collectionId, cardId]
   );
 
