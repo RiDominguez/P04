@@ -1,6 +1,11 @@
 import { RouterContext } from "https://deno.land/x/oak/mod.ts";
 import { cardSchema } from "../../schemas/cardSchema.ts";
 import { client } from "../db/db.ts";
+import { TcgApiService } from "../services/tcgapi.ts"; // Asegúrate de que la ruta sea correcta
+
+
+const tcgService = new TcgApiService();
+
 
 const API_KEY = "78489cba-a572-4c4f-b280-07faee60dd02";
 
@@ -208,15 +213,84 @@ export const getUserCards = async (ctx: RouterContext<"/users/:userId/cards">) =
       [userId]
     );
 
+    const cardsWithPrices = await Promise.all(result.rows.map(async (card) => {
+      let price = null;
+      try {
+        const apiCard = await tcgService.getCard(card.official_id);
+        price = apiCard.tcgplayer?.prices?.holofoil?.market
+             ?? apiCard.tcgplayer?.prices?.normal?.market
+             ?? apiCard.tcgplayer?.prices?.reverseHolofoil?.market
+             ?? null;
+      } catch (_) {
+        // Ignora errores de precios, deja null
+      }
+
+      return {
+        ...card,
+        market_price: price,
+      };
+    }));
+
     ctx.response.status = 200;
     ctx.response.body = {
-      cards: result.rows,
+      cards: cardsWithPrices,
     };
   } catch (error) {
-    if (error instanceof Error) {
-      ctx.throw(500, error.message);
-    } else {
-      ctx.throw(500, "Unknown error");
-    }
+    console.error(error);
+    ctx.throw(500, "Error al obtener las cartas");
+  }
+};
+
+export const getCardsForTrade = async (ctx: RouterContext<"/users/:userId/trade-cards">) => {
+  const { userId } = ctx.params;
+  const currentUserId = ctx.state.userId;
+
+  if (Number(userId) !== currentUserId) {
+    ctx.throw(403, "Solo puedes ver tus propias cartas para intercambio");
+  }
+
+  try {
+    const result = await client.queryObject<{
+      id: number;
+      name: string;
+      rarity: string;
+      type: string;
+      expansion: string;
+      official_id: string;
+      condition: string;
+      is_for_trade: boolean;
+    }>(
+      `SELECT uc.id, pc.name, pc.rarity, pc.type, pc.expansion, pc.official_id, uc.condition, uc.is_for_trade
+       FROM user_cards uc
+       JOIN pokemon_cards pc ON uc.card_id = pc.id
+       WHERE uc.user_id = $1 AND uc.is_for_trade = true`,
+      [userId]
+    );
+
+    const cardsWithPrices = await Promise.all(result.rows.map(async (card) => {
+      let price = null;
+      try {
+        const apiCard = await tcgService.getCard(card.official_id);
+        price = apiCard.tcgplayer?.prices?.holofoil?.market
+             ?? apiCard.tcgplayer?.prices?.normal?.market
+             ?? apiCard.tcgplayer?.prices?.reverseHolofoil?.market
+             ?? null;
+      } catch (_) {
+        // si falla, se ignora
+      }
+
+      return {
+        ...card,
+        market_price: price,
+      };
+    }));
+
+    ctx.response.status = 200;
+    ctx.response.body = {
+      cards: cardsWithPrices,
+    };
+  } catch (error) {
+    console.error(error);
+    ctx.throw(500, "Error al obtener cartas para intercambio");
   }
 };

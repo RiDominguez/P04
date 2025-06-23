@@ -28,6 +28,7 @@ export const authMiddleware = async (ctx: Context, next: Next) => {
     ctx.state.userId = payload.id; 
     console.log("Middleware - userId en ctx.state:", ctx.state.userId);
     await next();
+    console.log("AuthMiddleware: usuario autorizado, userId:", ctx.state.userId);
   } catch (_error) {
     ctx.throw(401, "Token inválido");
   }

@@ -3,7 +3,8 @@ import {
   addUserCard,
   updateUserCard,
   deleteUserCard,
-  getUserCards
+  getUserCards,
+  getCardsForTrade,
 } from "../controllers/userCardController.ts";
 import { authMiddleware } from "../middleware/auth.ts";
 import { getCardsFromAPI } from "../services/pokemon.ts";
@@ -16,7 +17,7 @@ cardRouter
   .put("/users/:userId/cards/:cardId",authMiddleware, updateUserCard)
   .delete("/users/:userId/cards/:cardId", authMiddleware, deleteUserCard)
   .get("/users/:userId/cards",authMiddleware, getUserCards)
-  
+  .get("/users/:userId/trade-cards", authMiddleware, getCardsForTrade)
   .get("/cards", getCardsFromAPI);
 
 export default cardRouter;

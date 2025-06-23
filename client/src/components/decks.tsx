@@ -4,12 +4,17 @@ import Navbar from "../components/Navbar";
 interface Card {
   id: number;
   name: string;
+  images: {
+    small: string;
+    large: string;
+  };
 }
 
 interface Collection {
   id: number;
   name: string;
   cards?: Card[]; // Hacer cards opcional ya que se carga después
+  
 }
 
 const Collections: React.FC = () => {

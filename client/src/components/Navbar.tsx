@@ -40,11 +40,12 @@ const Navbar = () => {
 
         {/* Menú navegación (desktop) */}
         <div className="space-x-8 hidden md:flex">
-          <Link to="/dashboard" className="hover:text-gray-300">Dashboard</Link>
+          <Link to="/estadisticas" className="hover:text-gray-300">Dashboard</Link>
           <Link to="/deck" className="hover:text-gray-300">deck</Link>
           <Link to="/cartas" className="hover:text-gray-300">Cards</Link>
           <Link to="/subir" className="hover:text-gray-300">Upload</Link>
           <Link to="/inventario" className="hover:text-gray-300">inventory</Link>
+          <Link to="/trade" className="hover:text-gray-300">Market</Link>
         </div>
 
         {/* Menú usuario */}
@@ -63,16 +64,6 @@ const Navbar = () => {
                   Signed in as <span className="font-semibold">{user}</span>
                 </div>
                 <ul className="text-sm">
-                  <li>
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2">
-                      <span>🔄</span> Activity log
-                    </button>
-                  </li>
-                  <li>
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2">
-                      <span>⚙️</span> Settings
-                    </button>
-                  </li>
                   <li>
                     <button
                       onClick={handleLogout}
