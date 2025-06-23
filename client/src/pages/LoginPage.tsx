@@ -9,6 +9,8 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -17,7 +19,7 @@ const LoginPage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/login', {
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,11 +33,9 @@ const LoginPage = () => {
       }
 
       const data = await response.json();
-      // Guardar el token JWT en localStorage
       localStorage.setItem('token', data.token);
       localStorage.setItem('username', data.user.username);
 
-      // Redirigir a la página principal o dashboard
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');

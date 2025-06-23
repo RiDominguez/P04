@@ -26,6 +26,7 @@ const Collections: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const userId = 6;
   const token = localStorage.getItem("token");
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const withImages = (arr: any[]) =>
     arr.map((c) => {
@@ -35,17 +36,25 @@ const Collections: React.FC = () => {
     });
 
   const getDecks = async () => {
-    const res = await fetch(`http://localhost:8000/users/${userId}/collections`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(`${API_URL}/users/${userId}/collections`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const data = await res.json();
     setCollections(Array.isArray(data) ? data : data.collections || []);
   };
+
   const getInventory = async () => {
-    const res = await fetch(`http://localhost:8000/users/${userId}/cards`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(`${API_URL}/users/${userId}/cards`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const d = await res.json();
     setInventory(withImages(d.cards || d));
   };
+
   const getDeckCards = async (id: number) => {
-    const res = await fetch(`http://localhost:8000/collections/${id}/cards`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(`${API_URL}/collections/${id}/cards`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const d = await res.json();
     return withImages(d.cards || d);
   };
@@ -65,27 +74,35 @@ const Collections: React.FC = () => {
   };
 
   const addCard = async (deckId: number, userCardId: number) => {
-    await fetch(`http://localhost:8000/users/${userId}/collections/${deckId}/cards`, {
+    await fetch(`${API_URL}/users/${userId}/collections/${deckId}/cards`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ user_card_id: userCardId }),
     });
     const cards = await getDeckCards(deckId);
     setDeckModal((d) => (d && d.id === deckId ? { ...d, cards } : d));
   };
+
   const removeCard = async (deckId: number, userCardId: number) => {
-    await fetch(`http://localhost:8000/users/${userId}/collections/${deckId}/cards/${userCardId}`, {
+    await fetch(`${API_URL}/users/${userId}/collections/${deckId}/cards/${userCardId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
     const cards = await getDeckCards(deckId);
     setDeckModal((d) => (d && d.id === deckId ? { ...d, cards } : d));
   };
+
   const createDeck = async () => {
     if (!newDeckName.trim()) return;
-    await fetch(`http://localhost:8000/users/${userId}/collections`, {
+    await fetch(`${API_URL}/users/${userId}/collections`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ name: newDeckName }),
     });
     setNewDeckName("");
@@ -154,7 +171,6 @@ const Collections: React.FC = () => {
                   <div className="text-gray-400">Formato</div>
                   <div className="font-semibold">Standard</div>
                 </div>
-               
                 <div className="text-right">
                   <div className="text-gray-400">Cartas</div>
                   <div className="font-semibold">{deckModal.cards?.length}/60</div>

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
-import { Toaster, toast } from 'react-hot-toast'; 
+import { Toaster, toast } from 'react-hot-toast';
 
 const UploadCard = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -28,7 +30,7 @@ const UploadCard = () => {
     toast.loading('Uploading and recognizing card...', { id: 'upload-toast' });
 
     try {
-      const res = await fetch('http://localhost:8000/api/cards/upload', {
+      const res = await fetch(`${API_URL}/api/cards/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -48,7 +50,7 @@ const UploadCard = () => {
   return (
     <>
       <Navbar />
-      <Toaster position="top-right" /> {/* Asegúrate de poner esto una vez */}
+      <Toaster position="top-right" />
       <div className="min-h-screen bg-[#0d1b2a] text-white px-4 py-8 flex flex-col items-center">
         <div className="w-full max-w-md md:max-w-2xl bg-[#1e2a3a] p-6 md:p-10 rounded-lg shadow-lg">
           <h1 className="text-2xl md:text-3xl font-bold text-orange-500 mb-6 text-center">
@@ -93,5 +95,3 @@ const UploadCard = () => {
 };
 
 export default UploadCard;
-
-

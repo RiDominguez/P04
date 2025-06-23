@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 type CardProps = {
   card: {
-    id: string;  // Este es el official_id que usa el backend
+    id: string;  // official_id
     name: string;
     number: string;
     price?: number;
@@ -24,6 +24,8 @@ const estadosCarta = [
 const Card = ({ card }: CardProps) => {
   const [cantidad, setCantidad] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleAddClick = async () => {
     const estado = window.prompt(
@@ -49,13 +51,9 @@ const Card = ({ card }: CardProps) => {
           const base64Url = token.split('.')[1];
           const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
           const payload = JSON.parse(window.atob(base64));
-
-          if (!payload.id) {
-            throw new Error("El token no contiene un ID de usuario");
-          }
+          if (!payload.id) throw new Error("Token sin ID de usuario");
           return parseInt(payload.id);
         } catch (error) {
-          console.error("Error decodificando token:", error);
           throw new Error("Token inválido");
         }
       };
@@ -63,12 +61,12 @@ const Card = ({ card }: CardProps) => {
       const userId = getUserIdFromToken(token);
 
       const requestBody = {
-        official_id: card.id,   // Ajustado al backend
+        official_id: card.id,
         condition: estado,
-        is_for_trade: false,    // Puedes cambiar o añadir UI para esta opción luego
+        is_for_trade: false,
       };
 
-      const response = await fetch(`http://localhost:8000/users/${userId}/cards`, {
+      const response = await fetch(`${API_URL}/users/${userId}/cards`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,12 +81,11 @@ const Card = ({ card }: CardProps) => {
         throw new Error(errorData.message || `Error HTTP ${response.status}`);
       }
 
-      const data = await response.json();
+      await response.json();
       setCantidad(prev => prev + 1);
       alert("Carta añadida correctamente al inventario");
 
     } catch (error: any) {
-      console.error("Error completo:", error);
       alert(`Error: ${error.message || "No se pudo añadir la carta"}`);
     } finally {
       setIsLoading(false);

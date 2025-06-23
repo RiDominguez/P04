@@ -21,7 +21,8 @@ const Inventory: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const userId = 6; // Reemplaza con ID dinámico si usas login
+  const userId = 6;
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchCards = async () => {
     try {
@@ -35,7 +36,7 @@ const Inventory: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:8000/users/${userId}/cards`, {
+      const response = await fetch(`${API_URL}/users/${userId}/cards`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -74,7 +75,7 @@ const Inventory: React.FC = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No autorizado");
 
-      const response = await fetch(`http://localhost:8000/users/${userId}/cards/${cardId}`, {
+      const response = await fetch(`${API_URL}/users/${userId}/cards/${cardId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +101,7 @@ const Inventory: React.FC = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No autorizado");
 
-      const response = await fetch(`http://localhost:8000/users/${userId}/cards/${cardId}`, {
+      const response = await fetch(`${API_URL}/users/${userId}/cards/${cardId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -128,7 +129,7 @@ const Inventory: React.FC = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No autorizado");
 
-      const response = await fetch(`http://localhost:8000/users/${userId}/cards/${cardId}`, {
+      const response = await fetch(`${API_URL}/users/${userId}/cards/${cardId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -166,7 +167,7 @@ const Inventory: React.FC = () => {
             cards={cards}
             onEditCondition={handleEditCondition}
             onDelete={handleDelete}
-            onToggleTrade={handleToggleTrade} // 👈 Nuevo
+            onToggleTrade={handleToggleTrade}
           />
         )}
       </main>
@@ -175,5 +176,3 @@ const Inventory: React.FC = () => {
 };
 
 export default Inventory;
-
-
