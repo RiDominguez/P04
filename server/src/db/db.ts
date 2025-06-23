@@ -1,21 +1,22 @@
-import { config } from "https://deno.land/x/dotenv/mod.ts";
 import { Client } from "https://deno.land/x/postgres/mod.ts";
 
-const env = config(); //si falta el .env
+const user = Deno.env.get("DB_USER");
+const database = Deno.env.get("DB_NAME");
+const password = Deno.env.get("DB_PASSWORD");
+const hostname = Deno.env.get("DB_HOST");
+const port = Number(Deno.env.get("DB_PORT") ?? 5432);
 
-const requiredVars = ["DB_USER", "DB_NAME", "DB_HOST"];
-for (const varName of requiredVars) {
-  if (!env[varName]) {
-    throw new Error(`Missing required environment variable: ${varName}`);
-  }
+// Validación
+if (!user || !database || !hostname || !password) {
+  throw new Error("Faltan variables de entorno requeridas (DB_USER, DB_NAME, etc.)");
 }
 
 export const client = new Client({
-  user: env.DB_USER,
-  database: env.DB_NAME,
-  password: env.DB_PASSWORD,
-  hostname: env.DB_HOST,
-  port: env.DB_PORT ? Number(env.DB_PORT) : 5432,
+  user,
+  database,
+  password,
+  hostname,
+  port,
 });
 
 export const connectDB = async () => {
@@ -23,12 +24,8 @@ export const connectDB = async () => {
     await client.connect();
     console.log("Conexión exitosa a PostgreSQL");
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error al conectar a PostgreSQL:", error.message);
-    } else {
-      console.error("Error al conectar a PostgreSQL:", String(error));
-    }
-    throw error; 
+    console.error("Error al conectar a PostgreSQL:", error instanceof Error ? error.message : error);
+    throw error;
   }
 };
 
@@ -37,10 +34,7 @@ export const closeDB = async () => {
     await client.end();
     console.log("Conexión cerrada");
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error al cerrar la conexión:", error.message);
-    } else {
-      console.error("Error al cerrar la conexión:", error);
-    }
+    console.error("Error al cerrar la conexión:", error instanceof Error ? error.message : error);
   }
 };
+
