@@ -51,4 +51,20 @@ export class TcgApiService {
     if (!response.ok) throw new Error(`Error fetching card ${cardId}`);
     return (await response.json()).data;
   }
+
+  async getSets() {
+    const response = await fetch(`${this.API_URL}/sets`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Api-Key': this.API_KEY,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error fetching sets: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.data; // Aquí tienes el array de sets con su info, incluyendo 'total'
+  }
 }

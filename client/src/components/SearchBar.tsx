@@ -44,17 +44,6 @@ const SearchBar = ({ search, setSearch, onFilterClick }: SearchBarProps) => {
           </button>
         )}
       </div>
-
-      {/* Filter button */}
-      <button
-        onClick={onFilterClick}
-        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 text-gray-700 font-semibold shadow-sm transition"
-      >
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 018 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-        </svg>
-        Filter
-      </button>
     </div>
   );
 };

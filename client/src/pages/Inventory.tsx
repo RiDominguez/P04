@@ -21,7 +21,7 @@ const Inventory: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const userId = 6; // Cambia esto por un valor dinámico si tienes login
+  const userId = 6; // Reemplaza con ID dinámico si usas login
 
   const fetchCards = async () => {
     try {
@@ -83,13 +83,37 @@ const Inventory: React.FC = () => {
         body: JSON.stringify({ condition: newCondition }),
       });
 
-      if (!response.ok) {
-        throw new Error("No se pudo actualizar el estado");
-      }
+      if (!response.ok) throw new Error("No se pudo actualizar el estado");
 
       setCards((prev) =>
         prev.map((card) =>
           card.id === cardId ? { ...card, condition: newCondition } : card
+        )
+      );
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleToggleTrade = async (cardId: number, isForTrade: boolean) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No autorizado");
+
+      const response = await fetch(`http://localhost:8000/users/${userId}/cards/${cardId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ is_for_trade: isForTrade }),
+      });
+
+      if (!response.ok) throw new Error("Error al actualizar el estado de intercambio");
+
+      setCards((prev) =>
+        prev.map((card) =>
+          card.id === cardId ? { ...card, is_for_trade: isForTrade } : card
         )
       );
     } catch (error: any) {
@@ -111,9 +135,7 @@ const Inventory: React.FC = () => {
         },
       });
 
-      if (!response.ok) {
-        throw new Error("No se pudo eliminar la carta");
-      }
+      if (!response.ok) throw new Error("No se pudo eliminar la carta");
 
       setCards((prev) => prev.filter((card) => card.id !== cardId));
     } catch (error: any) {
@@ -144,6 +166,7 @@ const Inventory: React.FC = () => {
             cards={cards}
             onEditCondition={handleEditCondition}
             onDelete={handleDelete}
+            onToggleTrade={handleToggleTrade} // 👈 Nuevo
           />
         )}
       </main>

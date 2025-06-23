@@ -93,29 +93,29 @@ export class StatsService {
    */
   async getSetCompletion(userId: number): Promise<SetCompletion[]> {
   try {
-    const result = await client.queryObject<{
-      set_name: string;
-      owned: number;
-      total: number;
-    }>({
-      text: `
-        SELECT 
-      pc.expansion AS set_name,
-      COUNT(DISTINCT uc.card_id)::int AS owned,
-      MAX(pc.set_total_cards)::int AS total
-    FROM user_cards uc
-    JOIN pokemon_cards pc ON uc.card_id = pc.id
-    WHERE uc.user_id = $1
-    GROUP BY pc.expansion
-      `,
-      args: [userId],
+    // 1. Obtener sets owned desde la base local
+    const result = await client.queryObject<{ set_name: string; owned: number }>(`
+      SELECT pc.expansion AS set_name, COUNT(DISTINCT uc.card_id)::int AS owned
+      FROM user_cards uc
+      JOIN pokemon_cards pc ON uc.card_id = pc.id
+      WHERE uc.user_id = $1
+      GROUP BY pc.expansion
+    `, [userId]);
+
+    // 2. Obtener lista completa de sets con sus totales desde la API
+    const setsApi = await this.tcgApi.getSets(); // Debe llamar a https://api.pokemontcg.io/v2/sets
+
+    // 3. Combinar owned y total (total viene de la API)
+    return result.rows.map(({ set_name, owned }) => {
+      const setFromApi = setsApi.find((s: { name: string; total?: number }) => s.name === set_name);
+      return {
+        set_name,
+        owned,
+        total: setFromApi?.total ?? 0, // fallback a 0 si no encuentra
+      };
     });
-    console.log("getSetCompletion result:", result.rows);
-    // Si no hay filas, devolver array vacío (para evitar errores en frontend)
-    return result.rows ?? [];
   } catch (error) {
-    console.error("Error en getSetCompletion:", error);
-    // En lugar de lanzar error, devolver array vacío para que frontend no falle
+    console.error("Error en getSetCompletion usando API:", error);
     return [];
   }
 }
