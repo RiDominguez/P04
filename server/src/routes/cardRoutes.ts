@@ -1,4 +1,4 @@
-import { Router } from from "https://deno.land/x/oak@v12.6.1/mod.ts";
+import { Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import {
   addUserCard,
   updateUserCard,
