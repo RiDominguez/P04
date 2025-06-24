@@ -1,31 +1,26 @@
 import { RouterContext } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { cardSchema } from "../../schemas/cardSchema.ts";
 import { client } from "../db/db.ts";
-import { TcgApiService } from "../services/tcgapi.ts"; // Asegúrate de que la ruta sea correcta
-
+import { TcgApiService } from "../services/tcgapi.ts";
 
 const tcgService = new TcgApiService();
-
-
 const API_KEY = "78489cba-a572-4c4f-b280-07faee60dd02";
 
 export const addUserCard = async (ctx: RouterContext<"/users/:userId/cards">) => {
   const { userId } = ctx.params;
   const currentUserId = ctx.state.userId;
-  console.log("Controlador - userId en ctx.state:", ctx.state.userId);
-  console.log("UserId en URL:", userId, "UserId en token:", currentUserId);
 
   if (Number(userId) !== currentUserId) {
     ctx.throw(403, "Solo puedes añadir cartas a tu propia colección");
   }
 
   try {
-    const body = await ctx.request.body.json();
-    const validatedData = cardSchema.parse(body); // Incluye card_id u official_id
+    const body = ctx.request.body({ type: "json" });
+    const value = await body.value;
+    const validatedData = cardSchema.parse(value);
 
     let cardId: number;
 
-    // Si viene el official_id, buscar o insertar la carta primero
     if (validatedData.official_id) {
       const result = await client.queryObject<{ id: number }>(
         `SELECT id FROM pokemon_cards WHERE official_id = $1`,
@@ -35,11 +30,8 @@ export const addUserCard = async (ctx: RouterContext<"/users/:userId/cards">) =>
       if (result.rows.length > 0) {
         cardId = result.rows[0].id;
       } else {
-        // Obtener carta desde la API
         const apiRes = await fetch(`https://api.pokemontcg.io/v2/cards/${validatedData.official_id}`, {
-          headers: {
-            "X-Api-Key": API_KEY,
-          },
+          headers: { "X-Api-Key": API_KEY },
         });
 
         if (!apiRes.ok) ctx.throw(400, "No se pudo obtener la carta de la API");
@@ -56,14 +48,12 @@ export const addUserCard = async (ctx: RouterContext<"/users/:userId/cards">) =>
         cardId = insertRes.rows[0].id;
       }
     } else {
-      // Si ya se pasó card_id directamente
       if (validatedData.card_id === undefined) {
         ctx.throw(400, "El campo card_id es requerido si no se proporciona official_id");
       }
       cardId = validatedData.card_id;
     }
 
-    // Insertar en user_cards
     const insertUserCard = await client.queryObject<{ id: number }>(
       `INSERT INTO user_cards (user_id, card_id, condition, is_for_trade)
        VALUES ($1, $2, $3, $4) RETURNING id`,
@@ -79,11 +69,7 @@ export const addUserCard = async (ctx: RouterContext<"/users/:userId/cards">) =>
     if (error instanceof Error && error.message.includes("foreign key constraint")) {
       ctx.throw(404, "La carta especificada no existe");
     }
-    if (error instanceof Error) {
-      ctx.throw(500, error.message);
-    } else {
-      ctx.throw(500, "Unknown error");
-    }
+    ctx.throw(500, error instanceof Error ? error.message : "Unknown error");
   }
 };
 
@@ -96,10 +82,10 @@ export const updateUserCard = async (ctx: RouterContext<"/users/:userId/cards/:c
   }
 
   try {
-    const body = await ctx.request.body.json();
-    const validatedData = cardSchema.partial().parse(body); // Usamos partial para que todos los campos sean opcionales
+    const body = ctx.request.body({ type: "json" });
+    const value = await body.value;
+    const validatedData = cardSchema.partial().parse(value);
 
-    // Verificar que la carta pertenece al usuario
     const userCardCheck = await client.queryObject<{ id: number }>(
       `SELECT id FROM user_cards WHERE id = $1 AND user_id = $2`,
       [cardId, userId]
@@ -109,7 +95,6 @@ export const updateUserCard = async (ctx: RouterContext<"/users/:userId/cards/:c
       ctx.throw(404, "La carta no existe en tu colección");
     }
 
-    // Actualizar solo los campos proporcionados
     const updateFields = [];
     const updateValues = [];
     let paramCount = 1;
@@ -137,15 +122,9 @@ export const updateUserCard = async (ctx: RouterContext<"/users/:userId/cards/:c
     );
 
     ctx.response.status = 200;
-    ctx.response.body = {
-      message: "Carta actualizada correctamente",
-    };
+    ctx.response.body = { message: "Carta actualizada correctamente" };
   } catch (error) {
-    if (error instanceof Error) {
-      ctx.throw(500, error.message);
-    } else {
-      ctx.throw(500, "Unknown error");
-    }
+    ctx.throw(500, error instanceof Error ? error.message : "Unknown error");
   }
 };
 
@@ -158,7 +137,6 @@ export const deleteUserCard = async (ctx: RouterContext<"/users/:userId/cards/:c
   }
 
   try {
-    // Verificar que la carta pertenece al usuario
     const userCardCheck = await client.queryObject<{ id: number }>(
       `SELECT id FROM user_cards WHERE id = $1 AND user_id = $2`,
       [cardId, userId]
@@ -168,22 +146,15 @@ export const deleteUserCard = async (ctx: RouterContext<"/users/:userId/cards/:c
       ctx.throw(404, "La carta no existe en tu colección");
     }
 
-    // Eliminar la carta del usuario
     await client.queryObject(
       `DELETE FROM user_cards WHERE id = $1 AND user_id = $2`,
       [cardId, userId]
     );
 
     ctx.response.status = 200;
-    ctx.response.body = {
-      message: "Carta eliminada correctamente de tu colección",
-    };
+    ctx.response.body = { message: "Carta eliminada correctamente de tu colección" };
   } catch (error) {
-    if (error instanceof Error) {
-      ctx.throw(500, error.message);
-    } else {
-      ctx.throw(500, "Unknown error");
-    }
+    ctx.throw(500, error instanceof Error ? error.message : "Unknown error");
   }
 };
 
@@ -221,20 +192,12 @@ export const getUserCards = async (ctx: RouterContext<"/users/:userId/cards">) =
              ?? apiCard.tcgplayer?.prices?.normal?.market
              ?? apiCard.tcgplayer?.prices?.reverseHolofoil?.market
              ?? null;
-      } catch (_) {
-        // Ignora errores de precios, deja null
-      }
-
-      return {
-        ...card,
-        market_price: price,
-      };
+      } catch (_) {}
+      return { ...card, market_price: price };
     }));
 
     ctx.response.status = 200;
-    ctx.response.body = {
-      cards: cardsWithPrices,
-    };
+    ctx.response.body = { cards: cardsWithPrices };
   } catch (error) {
     console.error(error);
     ctx.throw(500, "Error al obtener las cartas");
@@ -275,22 +238,15 @@ export const getCardsForTrade = async (ctx: RouterContext<"/users/:userId/trade-
              ?? apiCard.tcgplayer?.prices?.normal?.market
              ?? apiCard.tcgplayer?.prices?.reverseHolofoil?.market
              ?? null;
-      } catch (_) {
-        // si falla, se ignora
-      }
-
-      return {
-        ...card,
-        market_price: price,
-      };
+      } catch (_) {}
+      return { ...card, market_price: price };
     }));
 
     ctx.response.status = 200;
-    ctx.response.body = {
-      cards: cardsWithPrices,
-    };
+    ctx.response.body = { cards: cardsWithPrices };
   } catch (error) {
     console.error(error);
     ctx.throw(500, "Error al obtener cartas para intercambio");
   }
 };
+

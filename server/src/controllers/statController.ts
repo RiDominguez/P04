@@ -1,81 +1,59 @@
-// src/controllers/stats.controller.ts
 import { Context } from "https://deno.land/x/oak@v12.6.1/mod.ts";
-import { StatsService } from "../services/statService.ts"
+import { StatsService } from "../services/statService.ts";
 
 export class StatsController {
   constructor(private statsService: StatsService) {}
 
-  // Obtiene distribución de tipos de carta (Para Pie Chart)
+  // Distribución por tipo (Pie Chart)
   async getCardTypes(ctx: Context) {
-    try {
-      const userId = this.getUserId(ctx);
-      const data = await this.statsService.getCardTypeDistribution(userId);
-      ctx.response.body = {
-        success: true,
-        data,
-      };
-    } catch (error) {
-      this.handleError(ctx, error);
-    }
+    await this.handleRequest(ctx, this.statsService.getCardTypeDistribution.bind(this.statsService));
   }
 
-  // Obtiene distribución de rarezas (Para Bar Chart)
+  // Distribución por rareza (Bar Chart)
   async getRarities(ctx: Context) {
-    try {
-      const userId = this.getUserId(ctx);
-      const data = await this.statsService.getRarityDistribution(userId);
-      ctx.response.body = {
-        success: true,
-        data,
-      };
-    } catch (error) {
-      this.handleError(ctx, error);
-    }
+    await this.handleRequest(ctx, this.statsService.getRarityDistribution.bind(this.statsService));
   }
 
-  // Obtiene progreso de sets (Para Progress Bars)
+  // Progreso por set (Progress Bar)
   async getSetCompletion(ctx: Context) {
-    try {
-      const userId = this.getUserId(ctx);
-      const data = await this.statsService.getSetCompletion(userId);
-      ctx.response.body = {
-        success: true,
-        data,
-      };
-    } catch (error) {
-      this.handleError(ctx, error);
-    }
+    await this.handleRequest(ctx, this.statsService.getSetCompletion.bind(this.statsService));
   }
 
-  // Método combinado (Para dashboard)
+  // Todas las estadísticas del usuario
   async getFullStats(ctx: Context) {
-    try {
-      const userId = this.getUserId(ctx);
-      const data = await this.statsService.getUserCollectionStats(userId);
-      ctx.response.body = {
-        success: true,
-        data,
-      };
-    } catch (error) {
-      this.handleError(ctx, error);
-    }
+    await this.handleRequest(ctx, this.statsService.getUserCollectionStats.bind(this.statsService));
   }
 
   // --- Helpers ---
+
+  private async handleRequest(ctx: Context, serviceMethod: (userId: number) => Promise<any>) {
+    try {
+      const userId = this.getUserId(ctx);
+      const data = await serviceMethod(userId);
+      ctx.response.body = { success: true, data };
+    } catch (error) {
+      this.handleError(ctx, error);
+    }
+  }
+
   private getUserId(ctx: Context): number {
-    const userId = parseInt(ctx.request.url.searchParams.get("userId") || "");
+    const userIdParam = ctx.request.url.searchParams.get("userId");
+    const userId = userIdParam ? parseInt(userIdParam, 10) : NaN;
+
     if (isNaN(userId)) {
       throw new Error("ID de usuario inválido");
     }
+
     return userId;
   }
 
   private handleError(ctx: Context, error: Error) {
-    ctx.response.status = error.message.includes("inválido") ? 400 : 500;
+    const isClientError = error.message.includes("inválido") || error.message.includes("not found");
+    ctx.response.status = isClientError ? 400 : 500;
     ctx.response.body = {
       success: false,
       error: error.message,
     };
-    console.error(`Error en StatsController: ${error.stack}`);
+    console.error(`❌ Error en StatsController: ${error.stack}`);
   }
 }
