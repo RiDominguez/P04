@@ -1,4 +1,4 @@
-import { Context } from "https://deno.land/x/oak/mod.ts";
+import { Context } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 
 export async function errorMiddleware(
   ctx: Context,

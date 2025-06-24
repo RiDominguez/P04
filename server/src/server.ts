@@ -1,4 +1,4 @@
-import { Application, Router, Context } from "https://deno.land/x/oak/mod.ts";
+import { Application, Router, Context } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
 import { connectDB } from "./db/db.ts";
 import userRouter from "./routes/userRoutes.ts";

@@ -1,4 +1,4 @@
-import { RouterContext } from "https://deno.land/x/oak/mod.ts";
+import { RouterContext } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { cardSchema } from "../../schemas/cardSchema.ts";
 import { client } from "../db/db.ts";
 import { TcgApiService } from "../services/tcgapi.ts"; // Asegúrate de que la ruta sea correcta

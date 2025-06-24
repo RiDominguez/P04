@@ -1,4 +1,4 @@
-import { Router } from "https://deno.land/x/oak/mod.ts";
+import { Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { StatsController } from "../controllers/statController.ts";
 import { StatsService } from "../services/statService.ts";
 import { TcgApiService } from "../services/tcgapi.ts";

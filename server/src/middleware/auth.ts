@@ -1,5 +1,5 @@
 // middleware/authMiddleware.ts
-import { Context, Next } from "https://deno.land/x/oak/mod.ts";
+import { Context, Next } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { verify } from "https://deno.land/x/djwt/mod.ts"; // Asegúrate de usar una librería JWT válida
 import { config } from "https://deno.land/x/dotenv/mod.ts";
 

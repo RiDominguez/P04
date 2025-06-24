@@ -2,7 +2,7 @@ import { config } from "https://deno.land/x/dotenv/mod.ts"; // Importar dotenv
 import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 import { client } from "../db/db.ts";
 import { z } from "https://deno.land/x/zod/mod.ts";
-import { RouterContext } from "https://deno.land/x/oak/mod.ts";
+import { RouterContext } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { create, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
  
 

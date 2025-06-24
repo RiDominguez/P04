@@ -1,4 +1,4 @@
-import { RouterMiddleware } from "https://deno.land/x/oak/mod.ts";
+import { RouterMiddleware } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { client } from "../db/db.ts";
 
 export const cardOwnership: RouterMiddleware<"/users/:userId/cards/:cardId"> = async (ctx, next) => {
