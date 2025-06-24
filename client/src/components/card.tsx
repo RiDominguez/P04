@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 type CardProps = {
   card: {
-    id: string;  // Este es el official_id que usa el backend
+    id: string;
     name: string;
     number: string;
     price?: number;
@@ -13,13 +13,7 @@ type CardProps = {
   };
 };
 
-const estadosCarta = [
-  "Nuevo",
-  "Excelente",
-  "Bueno",
-  "Aceptable",
-  "Dañado",
-];
+const estadosCarta = ["Nuevo", "Excelente", "Bueno", "Aceptable", "Dañado"];
 
 const Card = ({ card }: CardProps) => {
   const [cantidad, setCantidad] = useState(0);
@@ -49,7 +43,6 @@ const Card = ({ card }: CardProps) => {
           const base64Url = token.split('.')[1];
           const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
           const payload = JSON.parse(window.atob(base64));
-
           if (!payload.id) {
             throw new Error("El token no contiene un ID de usuario");
           }
@@ -61,14 +54,15 @@ const Card = ({ card }: CardProps) => {
       };
 
       const userId = getUserIdFromToken(token);
-
       const requestBody = {
-        official_id: card.id,   // Ajustado al backend
+        official_id: card.id,
         condition: estado,
-        is_for_trade: false,    // Puedes cambiar o añadir UI para esta opción luego
+        is_for_trade: false,
       };
 
-      const response = await fetch(`http://localhost:8000/users/${userId}/cards`, {
+      const API_URL = import.meta.env.VITE_API_URL;
+
+      const response = await fetch(`${API_URL}/users/${userId}/cards`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,7 +80,6 @@ const Card = ({ card }: CardProps) => {
       const data = await response.json();
       setCantidad(prev => prev + 1);
       alert("Carta añadida correctamente al inventario");
-
     } catch (error: any) {
       console.error("Error completo:", error);
       alert(`Error: ${error.message || "No se pudo añadir la carta"}`);
@@ -129,3 +122,4 @@ const Card = ({ card }: CardProps) => {
 };
 
 export default Card;
+

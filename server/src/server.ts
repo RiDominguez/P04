@@ -79,6 +79,6 @@ app.use(createStatsRoutes().routes());
 app.use(createStatsRoutes().allowedMethods());
 
 // ✅ Inicio del servidor
-console.log(`Servidor corriendo en http://localhost:${PORT}`);
+console.log(`Servidor corriendo en el puerto:${PORT}`);
 await app.listen({ port: PORT });
 

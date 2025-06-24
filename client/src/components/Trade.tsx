@@ -29,7 +29,8 @@ const Trade: React.FC = () => {
       try {
         if (!token) throw new Error("No autenticado");
 
-        const res = await fetch(`http://localhost:8000/users/${userId}/trade-cards`, {
+        const API_URL = import.meta.env.VITE_API_URL;
+        const res = await fetch(`${API_URL}/users/${userId}/trade-cards`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

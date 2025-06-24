@@ -21,7 +21,6 @@ const useCards = (page: number, pageSize: number, filters: Filters = {}) => {
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
 
-  // useMemo para "congelar" los filtros
   const stableFilters = useMemo(() => ({
     search: filters.search,
     type: filters.type,
@@ -42,7 +41,8 @@ const useCards = (page: number, pageSize: number, filters: Filters = {}) => {
         if (stableFilters.type) queryParams.append('type', stableFilters.type);
         if (stableFilters.rarity) queryParams.append('rarity', stableFilters.rarity);
 
-        const apiUrl = `http://localhost:8000/cards?${queryParams.toString()}`;
+        const API_URL = import.meta.env.VITE_API_URL;
+        const apiUrl = `${API_URL}/cards?${queryParams.toString()}`;
 
         const response = await fetch(apiUrl);
         if (!response.ok) {
