@@ -79,8 +79,8 @@ export const getUserById = async (ctx: RouterContext<"/users/:id">) => {
 
 export const createUser = async (ctx: RouterContext<"/users">) => {
   try {
-    const body = await ctx.request.body.json();
-    const validatedData = userSchema.parse(body);
+    const { value } = await ctx.request.body({ type: "json" });
+    const validatedData = userSchema.parse(value);
 
     const existing = await client.queryObject(
       "SELECT 1 FROM users WHERE username = $1 OR email = $2 LIMIT 1",
@@ -105,13 +105,10 @@ export const createUser = async (ctx: RouterContext<"/users">) => {
     if (error instanceof z.ZodError) {
       ctx.throw(400, error.errors.map(e => e.message).join(", "));
     }
-    if (error instanceof Error) {
-      ctx.throw(500, error.message);
-    } else {
-      ctx.throw(500, "Internal Server Error");
-    }
+    ctx.throw(500, error.message || "Internal Server Error");
   }
 };
+
 
 export const deleteUser = async (ctx: RouterContext<"/users/:id">) => {
   const { id } = ctx.params;
@@ -150,8 +147,8 @@ const convertToCryptoKey = async (secretKey: string): Promise<CryptoKey> => {
 
 export const loginUser = async (ctx: RouterContext<"/login">) => {
   try {
-    const body = await ctx.request.body.json();
-    const { email, password } = loginSchema.parse(body);
+    const { value } = await ctx.request.body({ type: "json" });
+    const { email, password } = loginSchema.parse(value);
 
     const result = await client.queryObject<{
       id: number;
@@ -195,21 +192,16 @@ export const loginUser = async (ctx: RouterContext<"/login">) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       ctx.throw(400, error.errors.map(e => e.message).join(", "));
-    } else {
-      console.error("Error en loginUser:", error);
-      if (error && typeof error === "object" && "message" in error) {
-        ctx.throw(500, (error as { message: string }).message || "Internal Server Error");
-      } else {
-        ctx.throw(500, "Internal Server Error");
-      }
     }
+    ctx.throw(500, error.message || "Internal Server Error");
   }
 };
 
+
 export const registerUser = async (ctx: RouterContext<"/register">) => {
   try {
-    const body = await ctx.request.body.json();
-    const { username, email, password } = registerSchema.parse(body);
+    const { value } = await ctx.request.body({ type: "json" });
+    const { username, email, password } = registerSchema.parse(value);
 
     const existing = await client.queryObject(
       "SELECT 1 FROM users WHERE username = $1 OR email = $2 LIMIT 1",
@@ -235,6 +227,8 @@ export const registerUser = async (ctx: RouterContext<"/register">) => {
     if (error instanceof z.ZodError) {
       ctx.throw(400, error.errors.map(e => e.message).join(", "));
     }
-    ctx.throw(500, error.message);
+    ctx.throw(500, error.message || "Internal Server Error");
   }
 };
+
+
