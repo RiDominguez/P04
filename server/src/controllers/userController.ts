@@ -147,7 +147,8 @@ const convertToCryptoKey = async (secretKey: string): Promise<CryptoKey> => {
 
 export const loginUser = async (ctx: RouterContext<"/login">) => {
   try {
-    const { value } = await ctx.request.body({ type: "json" });
+    const body = ctx.request.body({ type: "json" });
+    const value = await body.value;
     const { email, password } = loginSchema.parse(value);
 
     const result = await client.queryObject<{
@@ -196,6 +197,7 @@ export const loginUser = async (ctx: RouterContext<"/login">) => {
     ctx.throw(500, error.message || "Internal Server Error");
   }
 };
+
 
 
 export const registerUser = async (ctx: RouterContext<"/register">) => {
