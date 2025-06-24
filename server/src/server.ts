@@ -1,26 +1,29 @@
 import { Application, Router, Context } from "https://deno.land/x/oak/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
-import { connectDB } from "./db/db.ts"; // Ajusta esta importación a tu código real
+import { connectDB } from "./db/db.ts";
 import userRouter from "./routes/userRoutes.ts";
 import cardRoutes from "./routes/cardRoutes.ts";
 import uploadRouter from "./routes/upload.ts";
 import collectionRouter from "./routes/collectionRoutres.ts";
 import { createStatsRoutes } from "./routes/statRoutes.ts";
 
-const PORT = 8000;
+// 🔧 Puerto dinámico para producción
+const PORT = Number(Deno.env.get("PORT")) || 8000;
+const FRONTEND_ORIGIN = Deno.env.get("FRONTEND_ORIGIN") || "*";
+
 const app = new Application();
 
-// Middleware CORS
+// ✅ Middleware CORS (permitir origen configurable)
 app.use(
   oakCors({
-    origin: "http://localhost:5173",
+    origin: FRONTEND_ORIGIN,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true,
   })
 );
 
-// Middleware para responder OPTIONS (preflight) sin pasar por autenticación
+// ✅ Middleware para responder OPTIONS (preflight)
 app.use(async (ctx, next) => {
   console.log(`METHOD: ${ctx.request.method} URL: ${ctx.request.url}`);
   if (ctx.request.method === "OPTIONS") {
@@ -30,12 +33,11 @@ app.use(async (ctx, next) => {
   await next();
 });
 
-// Middleware de autenticación (ejemplo básico)
+// ✅ Middleware de autenticación (puedes ajustar o hacer condicional por ruta)
 app.use(async (ctx: Context, next) => {
   const authHeader = ctx.request.headers.get("Authorization");
   if (!authHeader) {
-    // Para rutas públicas, puedes omitir esta validación si quieres
-    await next();
+    await next(); // permite acceso a rutas públicas
     return;
   }
 
@@ -47,13 +49,9 @@ app.use(async (ctx: Context, next) => {
 
   const token = authHeader.substring(7);
   try {
-    // Aquí verifica tu JWT con la clave secreta y librería que uses
-    // Por ejemplo:
+    // Aquí deberías verificar tu JWT real (usando djwt o similar)
     // const payload = await verify(token, secretKey, "HS256");
-    // ctx.state.user = payload;
-
-    // Simulación:
-    ctx.state.user = { id: 6 }; // Pon aquí el payload real
+    ctx.state.user = { id: 6 }; // reemplazar con el payload real
     await next();
   } catch (_e) {
     ctx.response.status = 401;
@@ -61,12 +59,10 @@ app.use(async (ctx: Context, next) => {
   }
 });
 
-// Conexión a la base de datos
+// ✅ Conexión a la base de datos (usa DATABASE_URL como variable de entorno)
 await connectDB();
 
-// Rutas
-
-
+// ✅ Rutas
 app.use(userRouter.routes());
 app.use(userRouter.allowedMethods());
 
@@ -82,6 +78,7 @@ app.use(collectionRouter.allowedMethods());
 app.use(createStatsRoutes().routes());
 app.use(createStatsRoutes().allowedMethods());
 
-// Inicio servidor
+// ✅ Inicio del servidor
 console.log(`Servidor corriendo en http://localhost:${PORT}`);
 await app.listen({ port: PORT });
+
