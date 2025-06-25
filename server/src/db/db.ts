@@ -1,10 +1,9 @@
-import { config } from "https://deno.land/x/dotenv/mod.ts";
+/// <reference lib="deno.ns" />
+import "https://deno.land/std@0.224.0/dotenv/load.ts"; // ✅ Carga automática del .env
+
 import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
-const env = config(); // Carga .env en desarrollo
-
-// Usa DATABASE_URL si está definida (preferido en producción)
-const dbUrl = Deno.env.get("DATABASE_URL") || env.DATABASE_URL;
+const dbUrl = Deno.env.get("DATABASE_URL");
 
 if (!dbUrl) {
   throw new Error("Falta la variable DATABASE_URL");
