@@ -41,9 +41,9 @@ const Navbar = () => {
         {/* Menú navegación (desktop) */}
         <div className="space-x-8 hidden md:flex">
           <Link to="/estadisticas" className="hover:text-gray-300">Dashboard</Link>
-          <Link to="/deck" className="hover:text-gray-300">deck</Link>
+          <Link to="/deck" className="hover:text-gray-300">Deck</Link>
           <Link to="/cartas" className="hover:text-gray-300">Cards</Link>
-          <Link to="/inventario" className="hover:text-gray-300">inventory</Link>
+          <Link to="/inventario" className="hover:text-gray-300">Inventory</Link>
           <Link to="/trade" className="hover:text-gray-300">Market</Link>
         </div>
 
