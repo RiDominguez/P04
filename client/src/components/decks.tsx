@@ -1,3 +1,4 @@
+// ... (tus imports)
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Modal from "../components/Modal";
@@ -74,6 +75,27 @@ const Collections: React.FC = () => {
     setShowEditModal(true);
   };
 
+  const deleteDeck = async (deckId: number) => {
+    const confirmDelete = confirm("¿Estás seguro de que quieres eliminar este mazo?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`${API_URL}/users/${userId}/collections/${deckId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Error al eliminar mazo");
+      }
+
+      getDecks();
+    } catch (err) {
+      console.error("Error al eliminar mazo:", err);
+    }
+  };
+
   const addCard = async (deckId: number, userCardId: number) => {
     await fetch(`${API_URL}/users/${userId}/collections/${deckId}/cards`, {
       method: "POST",
@@ -112,111 +134,158 @@ const Collections: React.FC = () => {
   const progress = (n: number) => Math.min(100, (n / 60) * 100);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <Navbar />
-      <main className="pt-24 max-w-5xl mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-6 text-center">Mis Mazos</h1>
+  <div className="min-h-screen bg-gray-900 text-white">
+    <Navbar />
+    <main className="pt-24 max-w-5xl mx-auto px-4">
+      <h1 className="text-3xl font-bold mb-6 text-center">Mis Mazos</h1>
 
-        <div className="mb-6 flex gap-2">
-          <input
-            type="text"
-            placeholder="Nombre del nuevo mazo"
-            className="flex-1 bg-gray-800 text-white border border-gray-600 px-4 py-2 rounded"
-            value={newDeckName}
-            onChange={(e) => setNewDeckName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && createDeck()}
-          />
-          <button
-            onClick={createDeck}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            Crear
-          </button>
-        </div>
+      <div className="mb-6 flex gap-2">
+        <input
+          type="text"
+          placeholder="Nombre del nuevo mazo"
+          className="flex-1 bg-gray-800 text-white border border-gray-600 px-4 py-2 rounded"
+          value={newDeckName}
+          onChange={(e) => setNewDeckName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && createDeck()}
+        />
+        <button
+          onClick={createDeck}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >
+          Crear
+        </button>
+      </div>
 
-        {collections.map((c) => (
-          <div key={c.id} className="bg-gray-800 p-4 rounded-lg mb-4 flex justify-between items-center">
-            <span className="font-semibold text-lg">{c.name}</span>
-            <div className="flex gap-2">
-              <button onClick={() => openEditDeck(c)} className="bg-blue-600 px-3 py-1 rounded">Editar mazo</button>
-            </div>
+      {collections.map((c) => (
+        <div
+          key={c.id}
+          className="bg-gray-800 p-4 rounded-lg mb-4 flex justify-between items-center"
+        >
+          <span className="font-semibold text-lg">{c.name}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => openEditDeck(c)}
+              className="bg-blue-600 px-3 py-1 rounded"
+            >
+              Editar mazo
+            </button>
+            <button
+              type="button"
+              onClick={() => deleteDeck(c.id)}
+              className="bg-red-600 px-3 py-1 rounded hover:bg-red-700"
+            >
+              Eliminar mazo
+            </button>
           </div>
-        ))}
-      </main>
+        </div>
+      ))}
+    </main>
 
-      {showDeckModal && deckModal && (
-        <Modal title={deckModal.name} onClose={() => setShowDeckModal(false)}>
-          <div className="space-y-2">
+    {/* Modal para visualizar mazo */}
+    {showDeckModal && deckModal && (
+      <Modal title={deckModal.name} onClose={() => setShowDeckModal(false)}>
+        <div className="space-y-2">
+          {deckModal.cards?.map((card) => (
+            <div key={card.id} className="flex items-center gap-2">
+              <img
+                src={card.images?.small}
+                alt={card.name}
+                className="w-10 h-14 rounded-md"
+              />
+              <span>{card.name}</span>
+            </div>
+          ))}
+        </div>
+      </Modal>
+    )}
+
+    {/* Modal para editar mazo */}
+    {showEditModal && deckModal && selectedDeck && (
+      <Modal
+        title={`Editar: ${deckModal.name}`}
+        onClose={() => setShowEditModal(false)}
+      >
+        <div className="flex gap-6">
+          {/* Cartas en el mazo */}
+          <div className="w-1/2 bg-[#1c1c24] text-white p-4 rounded-xl shadow-lg">
+            <div className="flex justify-between mb-4 text-sm">
+              <div>
+                <div className="text-gray-400">Formato</div>
+                <div className="font-semibold">Standard</div>
+              </div>
+              <div className="text-right">
+                <div className="text-gray-400">Cartas</div>
+                <div className="font-semibold">{deckModal.cards?.length}/60</div>
+              </div>
+            </div>
+            <div className="h-2 w-full bg-gray-800 rounded-full mb-4">
+              <div
+                className="h-full bg-yellow-400 rounded-full"
+                style={{
+                  width: `${progress(deckModal.cards?.length || 0)}%`,
+                }}
+              />
+            </div>
+            <div className="text-sm uppercase text-gray-400 font-bold flex justify-between border-b border-gray-700 pb-1 mb-2">
+              <span>Nombre</span>
+              <span>Qty</span>
+            </div>
             {deckModal.cards?.map((card) => (
-              <div key={card.id} className="flex items-center gap-2">
-                <img src={card.images?.small} alt={card.name} className="w-10 h-14 rounded-md" />
-                <span>{card.name}</span>
+              <div
+                key={card.id}
+                className="flex justify-between items-center bg-gray-800 hover:bg-gray-700 rounded-lg p-2 mb-2"
+              >
+                <div className="flex items-center gap-2">
+                  <img
+                    src={card.images?.small}
+                    alt={card.name}
+                    className="w-8 h-8 rounded-md"
+                  />
+                  <span>{card.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => removeCard(deckModal.id, card.id)}
+                    className="bg-gray-700 px-2 rounded"
+                  >
+                    eliminar
+                  </button>
+                  <span>1</span>
+                </div>
               </div>
             ))}
           </div>
-        </Modal>
-      )}
 
-      {showEditModal && deckModal && selectedDeck && (
-        <Modal title={`Editar: ${deckModal.name}`} onClose={() => setShowEditModal(false)}>
-          <div className="flex gap-6">
-            <div className="w-1/2 bg-[#1c1c24] text-white p-4 rounded-xl shadow-lg">
-              <div className="flex justify-between mb-4 text-sm">
-                <div>
-                  <div className="text-gray-400">Formato</div>
-                  <div className="font-semibold">Standard</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-gray-400">Cartas</div>
-                  <div className="font-semibold">{deckModal.cards?.length}/60</div>
-                </div>
-              </div>
-              <div className="h-2 w-full bg-gray-800 rounded-full mb-4">
-                <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${progress(deckModal.cards?.length || 0)}%` }} />
-              </div>
-              <div className="text-sm uppercase text-gray-400 font-bold flex justify-between border-b border-gray-700 pb-1 mb-2">
-                <span>Nombre</span>
-                <span>Qty</span>
-              </div>
-              {deckModal.cards?.map((card) => (
-                <div key={card.id} className="flex justify-between items-center bg-gray-800 hover:bg-gray-700 rounded-lg p-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <img src={card.images?.small} alt={card.name} className="w-8 h-8 rounded-md" />
-                    <span>{card.name}</span>
+          {/* Inventario del usuario */}
+          <div className="w-1/2">
+            <h3 className="text-lg font-semibold mb-2">Inventario</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {inventory.map((card) => {
+                const isInDeck = deckModal.cards?.some((c) => c.id === card.id);
+                return (
+                  <div
+                    key={card.id}
+                    onClick={() => addCard(deckModal.id, card.id)}
+                    className={`cursor-pointer p-2 rounded-lg flex flex-col items-center ${
+                      isInDeck
+                        ? "bg-gray-600"
+                        : "bg-gray-800 hover:bg-gray-700"
+                    }`}
+                  >
+                    <img src={card.images?.small} className="w-20 h-28 mb-1" />
+                    <span className="text-sm text-center">{card.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => removeCard(deckModal.id, card.id)} className="bg-gray-700 px-2 rounded">eliminar</button>
-                    <span>1</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="w-1/2">
-              <h3 className="text-lg font-semibold mb-2">Inventario</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {inventory.map((card) => {
-                  const isInDeck = deckModal.cards?.some((c) => c.id === card.id);
-                  return (
-                    <div
-                      key={card.id}
-                      onClick={() => addCard(deckModal.id, card.id)}
-                      className={`cursor-pointer p-2 rounded-lg flex flex-col items-center ${
-                        isInDeck ? "bg-gray-600" : "bg-gray-800 hover:bg-gray-700"
-                      }`}
-                    >
-                      <img src={card.images?.small} className="w-20 h-28 mb-1" />
-                      <span className="text-sm text-center">{card.name}</span>
-                    </div>
-                  );
-                })}
-              </div>
+                );
+              })}
             </div>
           </div>
-        </Modal>
-      )}
-    </div>
-  );
+        </div>
+      </Modal>
+    )}
+  </div>
+);
+
 };
 
 export default Collections;
