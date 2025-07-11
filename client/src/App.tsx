@@ -10,6 +10,8 @@ import DecksPage from './components/decks';
 import './index.css';
 import StatsPage from './pages/statPage';
 import Trade from './components/Trade';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Función para verificar si el usuario está autenticado
 const useAuth = () => {
