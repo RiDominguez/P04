@@ -175,7 +175,7 @@ export const loginUser = async (ctx: RouterContext<"/login">) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      exp: getNumericDate(10),
+      exp: getNumericDate(60 * 60), 
     };
     const cryptoKey = await convertToCryptoKey(secretKey!);
     const token = await create({ alg: "HS256", typ: "JWT" }, payload, cryptoKey);
