@@ -86,10 +86,11 @@ const Navbar = () => {
       {/* Menú mobile desplegable */}
       {mobileMenuOpen && (
         <div className="md:hidden px-6 pb-4 space-y-4 bg-[#0d1b2a]">
-          <Link to="/dashboard" className="block hover:text-gray-300" onClick={toggleMobileMenu}>Dashboard</Link>
-          <Link to="/sets" className="block hover:text-gray-300" onClick={toggleMobileMenu}>Sets</Link>
+          <Link to="/estadisticas" className="block hover:text-gray-300" onClick={toggleMobileMenu}>Dashboard</Link>
+          <Link to="/deck" className="block hover:text-gray-300" onClick={toggleMobileMenu}>Deck</Link>
           <Link to="/cartas" className="block hover:text-gray-300" onClick={toggleMobileMenu}>Cards</Link>
-          <Link to="/subir" className="block hover:text-gray-300" onClick={toggleMobileMenu}>Upload</Link>
+          <Link to="/inventario" className="block hover:text-gray-300" onClick={toggleMobileMenu}>Inventory</Link>
+          <Link to="/trade" className="block hover:text-gray-300" onClick={toggleMobileMenu}>Market</Link>
           {token ? (
             <button
               onClick={() => { handleLogout(); toggleMobileMenu(); }}
